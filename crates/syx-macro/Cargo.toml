@@ -19,3 +19,4 @@ serde_json = { workspace = true }
 syx-host-plugin = { workspace = true }
 syx-mono = { workspace = true }
 syx-meta = { workspace = true }
+libc = "0.2"

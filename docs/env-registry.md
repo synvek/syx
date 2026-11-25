@@ -9,10 +9,13 @@ Audit of `SYX_*` variables after GB config LTS. Status: **cli** (replaced by fla
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
 | `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox` (soft HTTP deny; **not** OS isolation — [threat-model](adr/macro-embed-threat-model.md)) |
 | `SYX_EMBED_WASM_SANDBOX` | opt-in | wasmtime path; failure/unavailable → `syx_embed_v2_run` **null** (C-5b; ≠ OS isolation) |
-| `SYX_EMBED_SECCOMP` | probe | label/probe only until wired; ≠ hardening GA |
-| `SYX_MACRO_SECCOMP` | probe | mode → `seccomp-label-unwired`; ≠ seccomp GA |
-| `SYX_EMBED_TIMEOUT_MS` | deprecated | `syx --embed-timeout-ms` |
-| `SYX_EMBED_MEMORY_MB` | deprecated | `syx --embed-memory-mb` |
+| `SYX_EMBED_SECCOMP` | wired-subset-linux | Linux net-deny BPF in worker; non-Linux → null (C-5c-2); ≠ full sandbox GA |
+| `SYX_MACRO_SECCOMP` | wired-subset-linux | Linux child net-deny BPF; mode `seccomp-netdeny-wired`; non-Linux → M040 (C-5c-2) |
+| `SYX_EMBED_TIMEOUT_MS` | enforced-when-set | hard wall (env wins over `syx --embed-timeout-ms`); in-process null / wasmtime kill (C-5c-1) |
+| `SYX_MACRO_TIMEOUT_MS` | opt-in | macro subprocess wall clock; timeout → kill + M040 (C-5c-1); unset = no limit |
+| `SYX_EMBED_MEMORY_MB` | soft-when-set | env wins over `syx --embed-memory-mb`; stdout-sum soft gate (C-5d honest; ≠ true heap) |
+| `SYX_EMBED_RSS_MB` | wired-subset | Linux `prlimit(RLIMIT_AS)` · Windows Job Object `PROCESS_MEMORY_LIMIT` in worker / wasmtime child; macOS/other → null (C-5d/C-5e) |
+| `SYX_MACRO_RSS_MB` | wired-subset | Linux child `prlimit` · Windows parent Job Object assign; over-limit → M040; macOS/other → M040 (C-5d/C-5e) |
 | `SYX_PERMISSION_SANDBOX` | deprecated | `syx --permission-sandbox` (M3-E02 / ADR-310) |
 | `SYX_ALLOW_NET` | deprecated | `syx --allow-net` (M3-E02 / ADR-310) |
 | `SYX_ALLOW_FS` | deprecated | `syx --allow-fs` (M3-E02 / ADR-311) |

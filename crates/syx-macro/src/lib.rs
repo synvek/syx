@@ -9,6 +9,21 @@ mod engine;
 mod external;
 mod external_protocol;
 mod external_sandbox;
+mod jobobject_windows;
+pub use jobobject_windows::{
+    try_apply_rss_hard_wall_bytes, try_apply_rss_hard_wall_for_pid,
+    try_assign_pid_to_job, try_create_job_with_process_memory_limit, JobHandle,
+    MODE_JOB_OBJECT_MEMORY_WIRED, MODE_JOB_OBJECT_UNSUPPORTED,
+};
+mod rlimit_linux;
+pub use rlimit_linux::{
+    try_set_as_limit_bytes, try_set_as_limit_bytes_for_pid, MODE_RLIMIT_AS_WIRED,
+    MODE_RLIMIT_UNSUPPORTED,
+};
+mod seccomp_linux;
+pub use seccomp_linux::{
+    try_install_seccomp_netdeny, MODE_SECCOMP_NETDENY_WIRED, MODE_SECCOMP_UNSUPPORTED,
+};
 mod hygiene;
 mod macro_diag;
 mod parse_fragment;

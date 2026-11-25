@@ -8,16 +8,21 @@
 //! Phase 21: Embed v7 — macOS wasmtime real run + `SYX_EMBED_CAPABILITIES` whitelist MVP (ADR-006 v7).
 //! Phase 22: Embed v8 — Windows wasmtime real run + `SYX_EMBED_DENY_UNKNOWN=1` capability hardening (ADR-006 v8).
 //! C-5b: when `SYX_EMBED_WASM_SANDBOX=1`, wasm failure/unavailable → null (no silent in-process).
+//! C-5c-1: opt-in timeout hard wall — env∪CLI + wasmtime kill; in-process recv_timeout (≠ OS sandbox).
+//! C-5c-2: opt-in `SYX_EMBED_SECCOMP=1` → Linux net-deny BPF in worker thread; else null.
+//! C-5d: opt-in `SYX_EMBED_RSS_MB` → Linux `prlimit(RLIMIT_AS)` hard kill; MEMORY env∪CLI.
+//! C-5e: same env → Windows Job Object `PROCESS_MEMORY_LIMIT`; macOS/other → null.
 
 #![allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI entrypoints take raw pointers by design
 
 use std::ffi::{CStr, CString};
+use std::io::Read;
 use std::os::raw::c_char;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use crate::{
     build_wasm_file_with_options, compile_and_run_embedded, compile_file_from_source,
@@ -137,16 +142,20 @@ fn embed_wasmtime_real_run(source: &str) -> Option<EmbedResult> {
     let wasm_path = dir.path().join("embed.wasm");
     std::fs::write(&wasm_path, &wasm).ok()?;
     let fuel = embed_wasm_fuel_limit();
-    let timeout_secs = embed_timeout_ms()
-        .map(|ms| ms.div_ceil(1000).max(1))
-        .unwrap_or(5);
-    let output = Command::new("wasmtime")
-        .arg("run")
+    let mut cmd = Command::new("wasmtime");
+    cmd.arg("run")
         .arg(format!("--fuel={fuel}"))
         .arg("--")
-        .arg(&wasm_path)
-        .output()
-        .ok()?;
+        .arg(&wasm_path);
+    // C-5d/C-5e: RSS hard wall on child (Linux prlimit / Windows Job Object); also honors timeout.
+    let rss = embed_rss_limit_bytes();
+    if rss.is_some() && !cfg!(any(target_os = "linux", target_os = "windows")) {
+        return None;
+    }
+    let output = match (embed_timeout_ms(), rss) {
+        (None, None) => cmd.output().ok()?,
+        (timeout, rss_lim) => wait_command_output_deadline(&mut cmd, timeout, rss_lim)?,
+    };
     if !output.status.success() {
         return None;
     }
@@ -156,11 +165,73 @@ fn embed_wasmtime_real_run(source: &str) -> Option<EmbedResult> {
         .filter(|l| !l.is_empty())
         .map(String::from)
         .collect();
-    let _ = timeout_secs;
+    // C-5d: MEMORY remains stdout-sum soft gate (honest); apply after wasmtime too.
+    if let Some(limit) = embed_memory_limit_bytes() {
+        if embed_memory_exceeded(&printed, limit) {
+            return None;
+        }
+    }
     Some(EmbedResult {
         exit_code: 0,
         printed,
     })
+}
+
+/// Spawn `cmd` with piped stdio.
+/// - `timeout_ms`: kill + `None` if wall clock exceeded (C-5c-1).
+/// - `rss_limit_bytes`: Linux prlimit / Windows Job Object on child (C-5d/C-5e); fail → `None`.
+fn wait_command_output_deadline(
+    cmd: &mut Command,
+    timeout_ms: Option<u64>,
+    rss_limit_bytes: Option<usize>,
+) -> Option<std::process::Output> {
+    let mut child = cmd
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .ok()?;
+    if let Some(limit) = rss_limit_bytes {
+        if syx_macro::try_apply_rss_hard_wall_for_pid(child.id(), limit as u64).is_err() {
+            let _ = child.kill();
+            let _ = child.wait();
+            return None;
+        }
+    }
+    let mut stdout_pipe = child.stdout.take()?;
+    let mut stderr_pipe = child.stderr.take()?;
+    let out_h = thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = stdout_pipe.read_to_end(&mut buf);
+        buf
+    });
+    let err_h = thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = stderr_pipe.read_to_end(&mut buf);
+        buf
+    });
+    let deadline = timeout_ms.map(|ms| Instant::now() + Duration::from_millis(ms));
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let stdout = out_h.join().ok()?;
+                let stderr = err_h.join().ok()?;
+                return Some(std::process::Output {
+                    status,
+                    stdout,
+                    stderr,
+                });
+            }
+            Ok(None) => {
+                if deadline.is_some_and(|d| Instant::now() >= d) {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return None;
+                }
+                thread::sleep(Duration::from_millis(10));
+            }
+            Err(_) => return None,
+        }
+    }
 }
 
 #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
@@ -168,17 +239,30 @@ fn embed_wasm_sandbox_probe() -> bool {
     embed_wasm_inprocess_fallback_allowed()
 }
 
-fn embed_timeout_ms() -> Option<u64> {
-    std::env::var("SYX_EMBED_TIMEOUT_MS")
+/// C-5c-1: env `SYX_EMBED_TIMEOUT_MS` wins; else CLI/`runtime_config().embed.timeout_ms`.
+pub fn embed_timeout_ms() -> Option<u64> {
+    if let Some(ms) = std::env::var("SYX_EMBED_TIMEOUT_MS")
         .ok()
         .and_then(|v| v.parse().ok())
+    {
+        return Some(ms);
+    }
+    syx_config::runtime_config().embed.timeout_ms
 }
 
-fn embed_memory_limit_bytes() -> Option<usize> {
-    std::env::var("SYX_EMBED_MEMORY_MB")
+/// C-5d: env `SYX_EMBED_MEMORY_MB` wins; else CLI/`runtime_config().embed.memory_mb`.
+/// Gate is still stdout-sum soft (honest); ≠ true heap metering.
+pub fn embed_memory_limit_bytes() -> Option<usize> {
+    if let Some(mb) = std::env::var("SYX_EMBED_MEMORY_MB")
         .ok()
         .and_then(|v| v.parse::<usize>().ok())
-        .map(|mb| mb.saturating_mul(1024 * 1024))
+    {
+        return Some(mb.saturating_mul(1024 * 1024));
+    }
+    syx_config::runtime_config()
+        .embed
+        .memory_mb
+        .map(|mb| (mb as usize).saturating_mul(1024 * 1024))
 }
 
 fn embed_memory_exceeded(printed: &[String], limit: usize) -> bool {
@@ -186,39 +270,13 @@ fn embed_memory_exceeded(printed: &[String], limit: usize) -> bool {
     used > limit
 }
 
-fn embed_rss_limit_bytes() -> Option<usize> {
+/// C-5d/C-5e: opt-in hard memory wall (`SYX_EMBED_RSS_MB`);
+/// Linux prlimit · Windows Job Object · else fail-closed at call sites.
+pub fn embed_rss_limit_bytes() -> Option<usize> {
     std::env::var("SYX_EMBED_RSS_MB")
         .ok()
         .and_then(|v| v.parse::<usize>().ok())
         .map(|mb| mb.saturating_mul(1024 * 1024))
-}
-
-#[cfg(unix)]
-fn current_rss_bytes() -> Option<usize> {
-    #[cfg(target_os = "linux")]
-    {
-        let statm = std::fs::read_to_string("/proc/self/statm").ok()?;
-        let rss_pages = statm.split_whitespace().nth(1)?.parse::<usize>().ok()?;
-        return Some(rss_pages * 4096);
-    }
-    #[cfg(target_os = "macos")]
-    {
-        // macOS ru_maxrss is unavailable without libc; use stdout budget as soft proxy when unset.
-        return None;
-    }
-    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-    {
-        None
-    }
-}
-
-#[cfg(not(unix))]
-fn current_rss_bytes() -> Option<usize> {
-    None
-}
-
-fn embed_rss_exceeded(limit: usize) -> bool {
-    current_rss_bytes().is_some_and(|rss| rss > limit)
 }
 
 fn embed_driver_options() -> DriverOptions {
@@ -254,69 +312,9 @@ pub extern "C" fn syx_embed_v2_compile(source: *const c_char) -> i32 {
     }
 }
 
-/// Compile and run SYX source; returns heap-allocated result or null on failure.
-#[no_mangle]
-pub extern "C" fn syx_embed_v2_run(source: *const c_char) -> *mut SyxEmbedV2Result {
-    if source.is_null() {
-        return std::ptr::null_mut();
-    }
-    let c_str = unsafe { CStr::from_ptr(source) };
-    let src = match c_str.to_str() {
-        Ok(s) => s,
-        Err(_) => return std::ptr::null_mut(),
-    };
-    let compile_ok = compile_file_from_source("embed_v2.sy", src).is_ok() as i32;
-    // C-5b: opt-in wasm sandbox must not silently fall back to in-process.
-    if embed_wasm_sandbox_enabled() {
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        {
-            if embed_wasm_sandbox_wasmtime_available() {
-                if let Some(result) = embed_wasmtime_real_run(src) {
-                    let mut line_ptrs: Vec<*mut c_char> = result
-                        .printed
-                        .into_iter()
-                        .filter_map(|s| CString::new(s).ok().map(|c| c.into_raw()))
-                        .collect();
-                    let out = Box::new(SyxEmbedV2Result {
-                        exit_code: result.exit_code,
-                        line_count: line_ptrs.len() as i32,
-                        lines: line_ptrs.as_mut_ptr(),
-                        compile_ok,
-                    });
-                    std::mem::forget(line_ptrs);
-                    return Box::into_raw(out);
-                }
-            }
-        }
-        let _ = compile_ok;
-        return std::ptr::null_mut();
-    }
-    let result = if let Some(ms) = embed_timeout_ms() {
-        let (tx, rx) = mpsc::channel();
-        let src_owned = src.to_string();
-        let opts = embed_driver_options();
-        thread::spawn(move || {
-            let r = compile_and_run_embedded(&src_owned, &opts);
-            let _ = tx.send(r);
-        });
-        match rx.recv_timeout(Duration::from_millis(ms)) {
-            Ok(r) => r,
-            Err(_) => return std::ptr::null_mut(),
-        }
-    } else {
-        compile_and_run_embedded(src, &embed_driver_options())
-    };
-    let result = match result {
-        Ok(r) => r,
-        Err(_) => return std::ptr::null_mut(),
-    };
+fn embed_result_to_c(result: EmbedResult, compile_ok: i32) -> *mut SyxEmbedV2Result {
     if let Some(limit) = embed_memory_limit_bytes() {
         if embed_memory_exceeded(&result.printed, limit) {
-            return std::ptr::null_mut();
-        }
-    }
-    if let Some(limit) = embed_rss_limit_bytes() {
-        if embed_rss_exceeded(limit) {
             return std::ptr::null_mut();
         }
     }
@@ -333,6 +331,108 @@ pub extern "C" fn syx_embed_v2_run(source: *const c_char) -> *mut SyxEmbedV2Resu
     });
     std::mem::forget(line_ptrs);
     Box::into_raw(out)
+}
+
+/// Run guest in a worker: optional seccomp + optional RSS hard wall (C-5c-2 / C-5d / C-5e).
+/// Channel disconnect / install failure / timeout → null.
+fn embed_run_worker_hardened(
+    src: &str,
+    install_seccomp: bool,
+    rss_limit: Option<usize>,
+) -> Option<EmbedResult> {
+    let (tx, rx) = mpsc::channel();
+    let src_owned = src.to_string();
+    let opts = embed_driver_options();
+    let timeout = embed_timeout_ms();
+    thread::spawn(move || {
+        if install_seccomp && syx_macro::try_install_seccomp_netdeny().is_err() {
+            let _ = tx.send(None);
+            return;
+        }
+        if let Some(limit) = rss_limit {
+            // C-5d Linux prlimit · C-5e Windows Job Object.
+            if syx_macro::try_apply_rss_hard_wall_bytes(limit as u64).is_err() {
+                let _ = tx.send(None);
+                return;
+            }
+        }
+        let r = compile_and_run_embedded(&src_owned, &opts);
+        let _ = tx.send(Some(r));
+    });
+    let result = match timeout {
+        Some(ms) => match rx.recv_timeout(Duration::from_millis(ms)) {
+            Ok(Some(r)) => r,
+            _ => return None,
+        },
+        None => match rx.recv() {
+            Ok(Some(r)) => r,
+            _ => return None,
+        },
+    };
+    result.ok()
+}
+
+/// Compile and run SYX source; returns heap-allocated result or null on failure.
+#[no_mangle]
+pub extern "C" fn syx_embed_v2_run(source: *const c_char) -> *mut SyxEmbedV2Result {
+    if source.is_null() {
+        return std::ptr::null_mut();
+    }
+    let c_str = unsafe { CStr::from_ptr(source) };
+    let src = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+    let compile_ok = compile_file_from_source("embed_v2.sy", src).is_ok() as i32;
+    let rss_limit = embed_rss_limit_bytes();
+    // C-5d/C-5e: RSS hard wall only on Linux/Windows; macOS/other → fail-closed null.
+    if rss_limit.is_some() && !cfg!(any(target_os = "linux", target_os = "windows")) {
+        let _ = compile_ok;
+        return std::ptr::null_mut();
+    }
+    // C-5b: opt-in wasm sandbox must not silently fall back to in-process.
+    if embed_wasm_sandbox_enabled() {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            if embed_wasm_sandbox_wasmtime_available() {
+                if let Some(result) = embed_wasmtime_real_run(src) {
+                    return embed_result_to_c(result, compile_ok);
+                }
+            }
+        }
+        let _ = compile_ok;
+        return std::ptr::null_mut();
+    }
+    let want_seccomp = embed_seccomp_mvp_enabled();
+    // C-5c-2 / C-5d: hardened worker when seccomp and/or RSS hard wall opted in.
+    if want_seccomp || rss_limit.is_some() {
+        if want_seccomp && !cfg!(target_os = "linux") {
+            return std::ptr::null_mut();
+        }
+        return match embed_run_worker_hardened(src, want_seccomp, rss_limit) {
+            Some(r) => embed_result_to_c(r, compile_ok),
+            None => std::ptr::null_mut(),
+        };
+    }
+    let result = if let Some(ms) = embed_timeout_ms() {
+        let (tx, rx) = mpsc::channel();
+        let src_owned = src.to_string();
+        let opts = embed_driver_options();
+        thread::spawn(move || {
+            let r = compile_and_run_embedded(&src_owned, &opts);
+            let _ = tx.send(r);
+        });
+        match rx.recv_timeout(Duration::from_millis(ms)) {
+            Ok(r) => r,
+            Err(_) => return std::ptr::null_mut(),
+        }
+    } else {
+        compile_and_run_embedded(src, &embed_driver_options())
+    };
+    match result {
+        Ok(r) => embed_result_to_c(r, compile_ok),
+        Err(_) => std::ptr::null_mut(),
+    }
 }
 
 /// Free a result returned by [`syx_embed_v2_run`].

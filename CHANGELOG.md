@@ -1,4 +1,8 @@
 ### SYX 0.4.0
+- feat: Windows opt-in Job Object PROCESS_MEMORY_LIMIT via SYX_*_RSS_MB; macOS fail-closed; Linux prlimit held (C-5e)
+- feat: Linux opt-in prlimit(RLIMIT_AS) hard wall for embed/macro/wasmtime; MEMORY env∪CLI; non-Linux fail-closed (C-5d)
+- feat: Linux opt-in net-deny seccomp-BPF for macro child + embed worker; non-Linux fail-closed (C-5c-2)
+- feat: embed/macro opt-in hard timeout (env∪CLI, wasmtime kill, SYX_MACRO_TIMEOUT_MS→M040) (C-5c-1)
 - feat: ModuleId / MirModIndex module-name→id table; MIR008 fail-closed on unify + codegen (C-3h)
 - docs: refuse-lossy ≠ format lossless GA (CST residual note; C-8f)
 - docs: Ch10 Compatibility notes for legacy bare fields / unmarked mutating (C-8e)

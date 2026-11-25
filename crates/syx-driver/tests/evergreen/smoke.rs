@@ -141,6 +141,315 @@ fn c5b_default_still_inprocess() {
 }
 
 #[test]
+fn c5c1_inprocess_timeout_and_cli_merge() {
+    use std::ffi::CString;
+    use std::sync::Mutex;
+    use syx_config::{EmbedConfig, SyxRuntimeConfig};
+    use syx_driver::embed_v2::{embed_timeout_ms, syx_embed_v2_free, syx_embed_v2_run};
+
+    // Serialize env/config mutation (parallel evergreen tests share process env).
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_TIMEOUT_MS");
+
+    let mut cfg = SyxRuntimeConfig::default();
+    cfg.embed = EmbedConfig {
+        sandbox: false,
+        timeout_ms: Some(999),
+        memory_mb: None,
+    };
+    syx_config::install_runtime_config(cfg);
+    assert_eq!(
+        embed_timeout_ms(),
+        Some(999),
+        "CLI/config timeout when env unset"
+    );
+
+    std::env::set_var("SYX_EMBED_TIMEOUT_MS", "42");
+    assert_eq!(embed_timeout_ms(), Some(42), "env must win over CLI");
+
+    // Hang guest: worker exceeds wall clock → null (C-5c-1).
+    std::env::set_var("SYX_EMBED_TIMEOUT_MS", "30");
+    let src = CString::new("func main() { while true { } }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    assert!(
+        ptr.is_null(),
+        "C-5c-1: SYX_EMBED_TIMEOUT_MS must null on hang guest"
+    );
+    syx_embed_v2_free(ptr);
+
+    std::env::remove_var("SYX_EMBED_TIMEOUT_MS");
+    syx_config::install_runtime_config(SyxRuntimeConfig::default());
+}
+
+#[test]
+fn c5c2_embed_seccomp_non_linux_null() {
+    use std::ffi::CString;
+    use std::sync::Mutex;
+    use syx_driver::embed_v2::syx_embed_v2_run;
+    #[cfg(target_os = "linux")]
+    use syx_driver::embed_v2::syx_embed_v2_free;
+
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_TIMEOUT_MS");
+    std::env::set_var("SYX_EMBED_SECCOMP", "1");
+    let src = CString::new("func main() { print(1) }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    #[cfg(not(target_os = "linux"))]
+    assert!(
+        ptr.is_null(),
+        "C-5c-2: non-Linux SYX_EMBED_SECCOMP=1 must null"
+    );
+    #[cfg(target_os = "linux")]
+    {
+        // Linux: install in worker; simple print should still succeed under net-deny.
+        assert!(
+            !ptr.is_null(),
+            "C-5c-2: Linux SYX_EMBED_SECCOMP=1 should run print under net-deny"
+        );
+        syx_embed_v2_free(ptr);
+    }
+    std::env::remove_var("SYX_EMBED_SECCOMP");
+}
+
+#[test]
+fn c5c2_hooks_and_mode_labels() {
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let embed = std::fs::read_to_string(root.join("crates/syx-driver/src/embed_v2.rs"))
+        .expect("embed_v2");
+    assert!(
+        embed.contains("embed_seccomp_mvp_enabled")
+            && embed.contains("try_install_seccomp_netdeny")
+            && embed.contains("C-5c-2"),
+        "embed must wire seccomp install"
+    );
+    let mac = std::fs::read_to_string(root.join("crates/syx-macro/src/external_sandbox.rs"))
+        .expect("sandbox");
+    assert!(
+        mac.contains("try_install_seccomp_netdeny")
+            && (mac.contains("MODE_SECCOMP_NETDENY_WIRED")
+                || mac.contains("seccomp-netdeny-wired")),
+        "macro must install + wired mode"
+    );
+    let filt = std::fs::read_to_string(root.join("crates/syx-macro/src/seccomp_linux.rs"))
+        .expect("seccomp_linux");
+    assert!(
+        filt.contains("SYS_socket")
+            && filt.contains("SYS_connect")
+            && filt.contains("PR_SET_SECCOMP")
+            && filt.contains("net-deny"),
+        "filter must be net-deny BPF"
+    );
+
+    // Mode labels (env mutation serialized lightly).
+    std::env::remove_var("SYX_MACRO_SECCOMP");
+    assert_eq!(syx_macro::macro_sandbox_mode(), "sandbox-reexec-only");
+    std::env::set_var("SYX_MACRO_SECCOMP", "1");
+    #[cfg(target_os = "linux")]
+    assert_eq!(
+        syx_macro::macro_sandbox_mode(),
+        syx_macro::MODE_SECCOMP_NETDENY_WIRED
+    );
+    #[cfg(not(target_os = "linux"))]
+    assert_eq!(
+        syx_macro::macro_sandbox_mode(),
+        syx_macro::MODE_SECCOMP_UNSUPPORTED
+    );
+    std::env::remove_var("SYX_MACRO_SECCOMP");
+}
+
+#[test]
+fn c5d_embed_rss_non_linux_null() {
+    use std::ffi::CString;
+    use std::sync::Mutex;
+    use syx_driver::embed_v2::syx_embed_v2_run;
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    use syx_driver::embed_v2::syx_embed_v2_free;
+
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_TIMEOUT_MS");
+    std::env::remove_var("SYX_EMBED_SECCOMP");
+    // Generous AS/Job wall so Linux/Windows print still succeeds.
+    std::env::set_var("SYX_EMBED_RSS_MB", "2048");
+    let src = CString::new("func main() { print(1) }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+    assert!(
+        ptr.is_null(),
+        "C-5d/C-5e: macOS/other SYX_EMBED_RSS_MB must null (fail-closed)"
+    );
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    {
+        assert!(
+            !ptr.is_null(),
+            "C-5d/C-5e: Linux/Windows SYX_EMBED_RSS_MB=2048 should run print under hard wall"
+        );
+        syx_embed_v2_free(ptr);
+    }
+    std::env::remove_var("SYX_EMBED_RSS_MB");
+}
+
+#[test]
+fn c5e_jobobject_hooks_and_fail_closed() {
+    use std::ffi::CString;
+    use std::sync::Mutex;
+    use syx_driver::embed_v2::syx_embed_v2_run;
+
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let jo = std::fs::read_to_string(root.join("crates/syx-macro/src/jobobject_windows.rs"))
+        .expect("jobobject_windows");
+    assert!(
+        jo.contains("CreateJobObjectW")
+            && jo.contains("AssignProcessToJobObject")
+            && jo.contains("PROCESS_MEMORY_LIMIT")
+            && jo.contains("JOBOBJECT_EXTENDED_LIMIT_INFORMATION")
+            && jo.contains("try_apply_rss_hard_wall_bytes")
+            && jo.contains("MODE_JOB_OBJECT_MEMORY_WIRED")
+            && jo.contains("C-5e"),
+        "jobobject_windows must wire CreateJobObject + PROCESS_MEMORY_LIMIT"
+    );
+    let embed = std::fs::read_to_string(root.join("crates/syx-driver/src/embed_v2.rs"))
+        .expect("embed_v2");
+    assert!(
+        embed.contains("try_apply_rss_hard_wall")
+            && embed.contains("C-5e")
+            && embed.contains("target_os = \"windows\""),
+        "embed must dispatch RSS hard wall to Windows Job Object"
+    );
+    let mac = std::fs::read_to_string(root.join("crates/syx-macro/src/external_sandbox.rs"))
+        .expect("sandbox");
+    assert!(
+        mac.contains("try_apply_rss_hard_wall_for_pid") && mac.contains("C-5e"),
+        "macro parent must assign Job Object on Windows"
+    );
+
+    // macOS/other: RSS still fail-closed (C-5e does not claim macOS).
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_SECCOMP");
+    std::env::set_var("SYX_EMBED_RSS_MB", "64");
+    let src = CString::new("func main() { print(1) }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+    assert!(
+        ptr.is_null(),
+        "C-5e: non-Linux/Windows SYX_EMBED_RSS_MB must remain null"
+    );
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    {
+        use syx_driver::embed_v2::syx_embed_v2_free;
+        if !ptr.is_null() {
+            syx_embed_v2_free(ptr);
+        }
+    }
+    std::env::remove_var("SYX_EMBED_RSS_MB");
+
+    assert_eq!(
+        syx_macro::MODE_JOB_OBJECT_MEMORY_WIRED,
+        "jobobject-memory-wired"
+    );
+    assert_eq!(
+        syx_macro::MODE_JOB_OBJECT_UNSUPPORTED,
+        "jobobject-unsupported-fail-closed"
+    );
+}
+
+#[test]
+fn c5d_memory_cli_merge_and_hooks() {
+    use std::sync::Mutex;
+    use syx_config::{EmbedConfig, SyxRuntimeConfig};
+    use syx_driver::embed_v2::embed_memory_limit_bytes;
+
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    std::env::remove_var("SYX_EMBED_MEMORY_MB");
+    let mut cfg = SyxRuntimeConfig::default();
+    cfg.embed = EmbedConfig {
+        sandbox: false,
+        timeout_ms: None,
+        memory_mb: Some(3),
+    };
+    syx_config::install_runtime_config(cfg);
+    assert_eq!(
+        embed_memory_limit_bytes(),
+        Some(3 * 1024 * 1024),
+        "CLI/config memory when env unset"
+    );
+    std::env::set_var("SYX_EMBED_MEMORY_MB", "7");
+    assert_eq!(
+        embed_memory_limit_bytes(),
+        Some(7 * 1024 * 1024),
+        "env must win over CLI memory_mb"
+    );
+    std::env::remove_var("SYX_EMBED_MEMORY_MB");
+    syx_config::install_runtime_config(SyxRuntimeConfig::default());
+
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let embed = std::fs::read_to_string(root.join("crates/syx-driver/src/embed_v2.rs"))
+        .expect("embed_v2");
+    assert!(
+        embed.contains("try_set_as_limit_bytes")
+            && embed.contains("try_set_as_limit_bytes_for_pid")
+            && embed.contains("C-5d")
+            && embed.contains("runtime_config()")
+            && embed.contains("memory_mb"),
+        "embed must wire prlimit + MEMORY env∪CLI"
+    );
+    let mac = std::fs::read_to_string(root.join("crates/syx-macro/src/external_sandbox.rs"))
+        .expect("sandbox");
+    assert!(
+        mac.contains("SYX_MACRO_RSS_MB")
+            && mac.contains("try_set_as_limit_bytes")
+            && mac.contains("C-5d"),
+        "macro must wire RLIMIT_AS + fail-closed"
+    );
+    let rl = std::fs::read_to_string(root.join("crates/syx-macro/src/rlimit_linux.rs")).expect("rl");
+    assert!(
+        rl.contains("RLIMIT_AS") && rl.contains("prlimit") && rl.contains("MODE_RLIMIT_AS_WIRED"),
+        "rlimit_linux must use prlimit(RLIMIT_AS)"
+    );
+}
+
+#[test]
+fn c5c1_hooks_and_symbols_exist() {
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let embed = std::fs::read_to_string(root.join("crates/syx-driver/src/embed_v2.rs"))
+        .expect("embed_v2.rs");
+    assert!(
+        embed.contains("wait_command_output_deadline")
+            && embed.contains("child.kill()")
+            && embed.contains("runtime_config().embed.timeout_ms")
+            && embed.contains("C-5c-1"),
+        "embed must wire wasmtime deadline kill + CLI merge"
+    );
+    assert!(
+        !embed.contains("let _ = timeout_secs"),
+        "must not discard timeout_secs"
+    );
+
+    let mac = std::fs::read_to_string(root.join("crates/syx-macro/src/external_sandbox.rs"))
+        .expect("external_sandbox.rs");
+    assert!(
+        mac.contains("SYX_MACRO_TIMEOUT_MS")
+            && mac.contains("wait_child_output_deadline")
+            && mac.contains("child.kill()")
+            && mac.contains("M040"),
+        "macro must opt-in wall clock → M040"
+    );
+}
+
+#[test]
 fn object_drop_llvm_abi() {
     let src = std::fs::read_to_string(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../syx-llvm/src/lib.rs"),

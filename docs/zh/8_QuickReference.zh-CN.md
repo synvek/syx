@@ -733,7 +733,8 @@ syx repl
 | `SYX_WASI_GC_PHASE22=1` | WASI GC Phase 22：`syx_gc.alloc` 使用 noop arena host hook |
 | `SYX_WASI_GC_PHASE23=1` | WASI GC Phase 23：bump arena + mark 清除 smoke |
 | `SYX_REGISTRY_CDN_PHASE6=1` | Registry CDN Phase 6：staging signed URL install |
-| `SYX_EMBED_SECCOMP=1` | Embed：seccomp/Job Object **仅标签/探针**（未接线；≠ hardening GA） |
+| `SYX_EMBED_SECCOMP=1` | Embed：Linux **net-deny seccomp-BPF**（C-5c-2）；非 Linux → null；≠ 全量 sandbox GA |
+| `SYX_EMBED_RSS_MB` | Embed：Linux `prlimit` · Windows Job Object 内存硬墙（C-5d/C-5e）；macOS → null |
 | `SYX_ATTACHED_HYGIENIC_V2=1` | `@attached` hygienic v2 模板（`{type}:{name}`） |
 | `SYX_LLVM_RELEASE_BLOCKER=1` | LLVM strict parity 可选 PR release blocker（ADR-019） |
 | `SYX_LLVM_STRICT_GREEN_WEEKS=N` | ADR-017 晋升计数（≥4 周绿可 promotion） |

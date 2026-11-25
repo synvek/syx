@@ -77,8 +77,11 @@ fn = ext.split("pub fn macro_sandbox_mode", 1)[1].split("\npub fn ", 1)[0]
 literals = re.findall(r'"([^"]+)"', fn)
 if "seccomp" in literals:
     raise SystemExit('macro_sandbox_mode still returns exact "seccomp"')
-if "seccomp-label-unwired" not in literals:
-    raise SystemExit("macro_sandbox_mode must return seccomp-label-unwired when env set")
+# C-5a required seccomp-label-unwired; C-5c-2 evolves Linux path to seccomp-netdeny-wired
+# (historical token may remain as in-fn literal). Accept either.
+if "seccomp-label-unwired" not in literals and "seccomp-netdeny-wired" not in literals \
+        and "MODE_SECCOMP_NETDENY_WIRED" not in Path("crates/syx-macro/src/external_sandbox.rs").read_text(encoding="utf-8"):
+    raise SystemExit("macro_sandbox_mode must expose seccomp-label-unwired or seccomp-netdeny-wired")
 if "sandbox-reexec-only" not in literals:
     raise SystemExit("macro_sandbox_mode must keep sandbox-reexec-only default")
 if "seccomp subprocess sandbox" in ext.split("\n", 3)[0]:

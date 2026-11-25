@@ -972,7 +972,7 @@ syx run app.sy
 
 ### Embed API（Phase 14–15）
 
-Phase 14+ Embed API（`syx_embed_v2_*`）：软超时 / 内存与 RSS 预算，以及可选 HTTP 拒绝（`--embed-sandbox`）。**不是** OS 隔离。威胁模型见 [macro-embed-threat-model](../adr/macro-embed-threat-model.md)。
+Phase 14+ Embed API（`syx_embed_v2_*`）：可选 HTTP 拒绝；**C-5c-1** 可选硬超时；**C-5c-2** 可选 `SYX_EMBED_SECCOMP=1` Linux net-deny BPF（非 Linux → null）；**C-5d/C-5e** 可选 `SYX_EMBED_RSS_MB` Linux `prlimit` · Windows Job Object 内存硬墙（macOS → null）；MEMORY env∪CLI 仍为 stdout 事后软闸。宏：`SYX_MACRO_TIMEOUT_MS`；`SYX_MACRO_SECCOMP=1`；`SYX_MACRO_RSS_MB` Linux/Windows 硬墙（macOS → M040）。**不是** 全量 OS sandbox / Job Object GA / macOS sandbox。威胁模型见 [macro-embed-threat-model](../adr/macro-embed-threat-model.md)。
 
 ### 格式化 — `syx format`
 

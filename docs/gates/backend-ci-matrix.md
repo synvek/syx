@@ -212,6 +212,22 @@ ADR [`macro-embed-threat-model.md`](../adr/macro-embed-threat-model.md): macro =
 
 When `SYX_EMBED_WASM_SANDBOX=1`, `syx_embed_v2_run` returns **null** if wasmtime is unavailable or the wasm run fails — **no** silent `compile_and_run_embedded` fallback. Unset env keeps default in-process. Census: [`c-5b-embed-wasm-fail-closed-census`](../census/c-5b-embed-wasm-fail-closed-census.md). C-5 remains `[~]`. **≠** timeout wire / real seccomp (C-5c+) / C-5 `[x]`.
 
+### C-5c-1 (done · embed/macro timeout hard wire)
+
+Opt-in hard wall: `SYX_EMBED_TIMEOUT_MS` (env wins) ∪ CLI `--embed-timeout-ms`; in-process `recv_timeout` → null; wasmtime subprocess **killed** on deadline → null; `SYX_MACRO_TIMEOUT_MS` kills expand child → **M040**. Unset = no wall-clock default. Census: [`c-5c-1-embed-macro-timeout-census`](../census/c-5c-1-embed-macro-timeout-census.md). C-5 remains `[~]`. **≠** seccomp BPF / RSS hard kill / C-5 `[x]` (→ **C-5c-2**).
+
+### C-5c-2 (done · Linux seccomp net-deny wire)
+
+Opt-in `SYX_MACRO_SECCOMP` / `SYX_EMBED_SECCOMP`: Linux installs **net-deny seccomp-BPF** (deny socket/connect/bind/listen; default-allow) in macro child / embed worker thread; mode `seccomp-netdeny-wired`. Non-Linux + env → **M040** / **null**. Census: [`c-5c-2-seccomp-wire-census`](../census/c-5c-2-seccomp-wire-census.md). C-5 remains `[~]`. **≠** Job Object / full filter GA / RSS hard kill / C-5 `[x]` (→ **C-5d**).
+
+### C-5d (done · embed/macro RSS hard wall)
+
+Opt-in `SYX_EMBED_RSS_MB` / `SYX_MACRO_RSS_MB`: Linux **`prlimit(RLIMIT_AS)`** in embed worker / wasmtime child pid / macro child; over-AS → **null** / **M040**. Non-Linux + env → fail-closed. MEMORY: env∪CLI stdout-sum soft (honest). Census: [`c-5d-embed-rss-hard-census`](../census/c-5d-embed-rss-hard-census.md). C-5 remains `[~]`. **≠** Job Object / macOS sandbox / C-5 `[x]` (→ **C-5e**).
+
+### C-5e (done · Windows Job Object thin gate)
+
+Same `SYX_*_RSS_MB` env: **Windows** Job Object **`PROCESS_MEMORY_LIMIT`** on embed worker / wasmtime child / macro child (parent assign); over-limit → **null** / **M040**. Linux keeps prlimit. macOS/other + env → fail-closed. Census: [`c-5e-jobobject-thin-census`](../census/c-5e-jobobject-thin-census.md). C-5 remains `[~]`. **≠** full Job Object GA / macOS sandbox / C-5 `[x]` (→ **C-5f**).
+
 ### C-6a (done · version SSOT align)
 
 Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/c-6a-version-ssot-census.md).
@@ -258,4 +274,4 @@ UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **loss
 
 ## Next
 
-Default next after C-3h: **C-5c+** — timeout/seccomp real wire (≠ claim C-5 `[x]`). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**.
+Default next after C-5e: **C-5f** — macOS sandbox thin gate (≠ claim C-5 `[x]`). C-5 remains `[~]` (C-5a/b/c-1/c-2/d/e done; macOS sandbox park). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.

@@ -11,10 +11,14 @@ GB 配置 LTS 之后对 `SYX_*` 变量的清点。状态含义：**cli**（已�
 | `SYX_LLVM_AOT` | deprecated | `syx --llvm-aot` |
 | `SYX_EMBED_SANDBOX` | deprecated | `syx --embed-sandbox`（软 HTTP 拒绝；**不是** OS 隔离 — [威胁模型](../adr/macro-embed-threat-model.md)） |
 | `SYX_EMBED_WASM_SANDBOX` | opt-in | wasmtime 路径；失败/不可用 → `syx_embed_v2_run` **null**（C-5b；≠ OS 隔离） |
-| `SYX_EMBED_SECCOMP` | probe | 仅标签/探针，未接线；≠ hardening GA |
-| `SYX_MACRO_SECCOMP` | probe | mode → `seccomp-label-unwired`；≠ seccomp GA |
-| `SYX_EMBED_TIMEOUT_MS` | deprecated | `syx --embed-timeout-ms` |
-| `SYX_EMBED_MEMORY_MB` | deprecated | `syx --embed-memory-mb` |
+| `SYX_EMBED_SECCOMP` | wired-subset-linux | Linux worker 装 net-deny BPF；非 Linux → null（C-5c-2）；≠ 全量 sandbox GA |
+| `SYX_MACRO_SECCOMP` | wired-subset-linux | Linux child net-deny BPF；mode `seccomp-netdeny-wired`；非 Linux → M040（C-5c-2） |
+| `SYX_EMBED_TIMEOUT_MS` | enforced-when-set | 硬墙钟（env 优先于 `syx --embed-timeout-ms`）；in-process null / wasmtime kill（C-5c-1） |
+| `SYX_MACRO_TIMEOUT_MS` | opt-in | 宏子进程墙钟；超时 → kill + M040（C-5c-1）；未设 = 无上限 |
+| `SYX_EMBED_MEMORY_MB` | soft-when-set | env 优先于 `syx --embed-memory-mb`；stdout 长度事后闸（C-5d 诚实；≠ 真堆计量） |
+| `SYX_EMBED_RSS_MB` | wired-subset | Linux `prlimit(RLIMIT_AS)` · Windows Job Object `PROCESS_MEMORY_LIMIT`（worker / wasmtime child）；macOS/其他 → null（C-5d/C-5e） |
+| `SYX_MACRO_RSS_MB` | wired-subset | Linux child `prlimit` · Windows 父进程 Job Object assign；超限 → M040；macOS/其他 → M040（C-5d/C-5e） |
+
 | `SYX_PERMISSION_SANDBOX` | deprecated | `syx --permission-sandbox`（M3-E02 / ADR-310） |
 | `SYX_ALLOW_NET` | deprecated | `syx --allow-net`（M3-E02 / ADR-310） |
 | `SYX_ALLOW_FS` | deprecated | `syx --allow-fs`（M3-E02 / ADR-311） |
