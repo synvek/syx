@@ -16,6 +16,8 @@ mod mir_verify_floor;
 pub use mir_verify_floor::verify_mir_cfg_floor;
 mod mir_fn_index;
 pub use mir_fn_index::{FuncId, MirFnIndex};
+mod mir_mod_index;
+pub use mir_mod_index::{collect_module_names_from_paths, MirModIndex, ModuleId};
 mod mir_stack_floor;
 pub use mir_stack_floor::{verify_mir_stack_floor, verify_mir_stack_floor_functions};
 mod mir_type_floor;
@@ -1765,6 +1767,7 @@ func main() {
         let cleared = MirModule {
             functions: mir.functions.clone(),
             aot_export_roots: vec![],
+            module_names: mir.module_names.clone(),
         };
         let cleared_emit = llvm_emit_function_names(&cleared);
         assert!(

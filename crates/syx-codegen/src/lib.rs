@@ -749,6 +749,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_branch_floor_functions(best_by_name.values().copied())?;
         // C-3g: JumpIfNil condition tag floor on post-unique bodies (MIR007).
         syx_mir::verify_mir_nil_branch_floor_functions(best_by_name.values().copied())?;
+        // C-3h: module name → ModuleId after nil-branch (empty module_names OK).
+        let _mod_index = syx_mir::MirModIndex::build(mir)?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

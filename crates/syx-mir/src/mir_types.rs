@@ -334,6 +334,11 @@ pub struct MirModule {
     /// ≠ language-level `Module.exports` auto-discovery.
     #[serde(default)]
     pub aot_export_roots: Vec<SmolStr>,
+    /// C-3h: ordered module identity names (typically path stems from ModuleGraph.order).
+    /// Empty ⇒ single-file / no graph populate (MirModIndex empty is OK).
+    /// ≠ DefId · ≠ Call(ModuleId) IR · ≠ AST `Module.name` (often `"main"`).
+    #[serde(default)]
+    pub module_names: Vec<SmolStr>,
 }
 
 /// Borrow [`MirModule::aot_export_roots`] as `&str` refs for emit/compact helpers.

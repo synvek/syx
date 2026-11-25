@@ -180,6 +180,10 @@ Codegen no longer silently picks a higher-`mir_function_quality` body for duplic
 
 `verify_mir_nil_branch_floor` / `verify_mir_nil_branch_floor_functions` — JumpIfNil condition must be Nil|Unknown; concrete Bool|Str|I32 → **MIR007**. Nil pops; Unknown left on stack (mir-run non-Nil path). Hooked after branch floor. Census: [`c-3g-mir-nil-branch-floor-census`](../census/c-3g-mir-nil-branch-floor-census.md). **≠** BeginTry/Throw pairing / ModuleId / full MirOp verifier.
 
+### C-3h (done · MIR ModuleId thin gate)
+
+`ModuleId` + `MirModIndex::build/require` + `collect_module_names_from_paths` — dense module-name→id table; duplicate name / unknown require / same-stem different path → **MIR008**. `MirModule.module_names` populated from `ModuleGraph.order` stems (empty OK). Hooked after nil-branch floor on unify + codegen. Census: [`c-3h-mir-mod-index-census`](../census/c-3h-mir-mod-index-census.md). C-3 remains `[~]` (≠ `[x]`). **≠** DefId / Call(ModuleId) IR / full MirOp / exception.
+
 ### C-4a (done · git rev pin + locked git install)
 
 Manifest git dependencies require explicit `rev` (missing → **P043**); never default to `main`. Under `SYX_INSTALL_LOCKED`, Git pins are read from `syx.lock` (URL/rev; missing/wrong → **P014**); lock bytes not rewritten. Census: [`c-4a-git-rev-pin-census`](../census/c-4a-git-rev-pin-census.md). **≠** default-locked install / publish-requires-lock / lock v16 trim (C-4b+).
@@ -254,4 +258,4 @@ UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **loss
 
 ## Next
 
-Default next after C-8f: **C-3h** — ModuleId thin gate open (stable module identity; ≠ full MirOp / exception). C-3 remains `[~]`. C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**.
+Default next after C-3h: **C-5c+** — timeout/seccomp real wire (≠ claim C-5 `[x]`). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. C-5 remains `[~]`. **C-4 `[x]`**.

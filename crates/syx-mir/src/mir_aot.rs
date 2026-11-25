@@ -179,6 +179,7 @@ pub fn shaken_module_for_aot_blob_with_roots(
             })
             .collect(),
         aot_export_roots: module.aot_export_roots.clone(),
+        module_names: module.module_names.clone(),
     }
 }
 
@@ -271,6 +272,7 @@ pub fn compact_module_for_aot_blob_with_roots(
     let mut out = MirModule {
         functions: compact_fns,
         aot_export_roots: module.aot_export_roots.clone(),
+        module_names: module.module_names.clone(),
     };
     remap_fn_indices_in_module(&mut out, &remap);
     out
@@ -456,6 +458,7 @@ pub fn module_with_execution_string_table_stripped(module: &MirModule) -> MirMod
             })
             .collect(),
         aot_export_roots: module.aot_export_roots.clone(),
+        module_names: module.module_names.clone(),
     }
 }
 
@@ -478,5 +481,6 @@ pub fn module_with_native_instructions_omitted(module: &MirModule) -> MirModule 
             })
             .collect(),
         aot_export_roots: module.aot_export_roots.clone(),
+        module_names: module.module_names.clone(),
     }
 }

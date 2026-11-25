@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: ModuleId / MirModIndex module-name→id table; MIR008 fail-closed on unify + codegen (C-3h)
 - docs: refuse-lossy ≠ format lossless GA (CST residual note; C-8f)
 - docs: Ch10 Compatibility notes for legacy bare fields / unmarked mutating (C-8e)
 - docs: clear book MD doc_debt/book_ahead (F20–F23 en+zh honesty; C-8d)

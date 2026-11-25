@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-25 · **C-8f CST residual note `[x]`**；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；C-3 `[~]`；默认下一 = **C-3h**（ModuleId 薄闸）。
+> **最近更新：** 2026-11-25 · **C-3h ModuleId `[x]`**；C-3 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-5 `[~]`；C-4 `[x]`；默认下一 = **C-5c+**（timeout/seccomp 真接线）。
 
 ## 0. 时代切换
 
@@ -107,9 +107,9 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3e** | `[x]` | 薄 type-tag 地板：`verify_mir_type_floor` → MIR005（Const/算术粗 tag；Add 拼接合法；Nil/非数值 Sub·Mul·Div 拒）；挂钩 stack 之后；census [`c-3e-mir-type-floor-census`](../docs/census/c-3e-mir-type-floor-census.md) |
 | **C-3f** | `[x]` | 薄 `JumpIfFalse` 条件 tag：`verify_mir_branch_floor` → MIR006（仅 `Bool|Unknown`；比较/逻辑作 Bool 生产者）；挂钩 type 之后；census [`c-3f-mir-branch-floor-census`](../docs/census/c-3f-mir-branch-floor-census.md) |
 | **C-3g** | `[x]` | 薄 `JumpIfNil` 条件 tag：`verify_mir_nil_branch_floor` → MIR007（仅 `Nil|Unknown`；Nil pop / Unknown 留栈）；挂钩 branch 之后；census [`c-3g-mir-nil-branch-floor-census`](../docs/census/c-3g-mir-nil-branch-floor-census.md) |
-| **C-3h** | `[ ]` | **默认下一**：ModuleId 薄闸开账（稳定 module identity；≠ 全量 MirOp / exception） |
+| **C-3h** | `[x]` | 薄 `ModuleId` / `MirModIndex`（`module_names`→稠密 id）→ MIR008；stem 撞路径 fail-closed；挂钩 nil-branch 之后；census [`c-3h-mir-mod-index-census`](../docs/census/c-3h-mir-mod-index-census.md) |
 
-**验收（C-3g）：** concrete 非 optional 条件 → MIR007；合法 if-let/?? 不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。ModuleId / 全量 MirOp / exception 继续 park（ModuleId → **C-3h**）。
+**验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
@@ -133,8 +133,10 @@ lockfile / git / path 依赖默认钉死；publish 与测试顺序一致；失�
 |------|------|------|
 | **C-5a** | `[x]` | threat-model ADR + 公开面假 sandbox 降级；`macro_sandbox_mode` → `seccomp-label-unwired`；census [`c-5a-threat-model-census`](../docs/census/c-5a-threat-model-census.md) |
 | **C-5b** | `[x]` | `SYX_EMBED_WASM_SANDBOX=1` 时 wasm 失败/不可用 → `syx_embed_v2_run` **null**（禁静默 in-process）；census [`c-5b-embed-wasm-fail-closed-census`](../docs/census/c-5b-embed-wasm-fail-closed-census.md) |
+| **C-5c+** | `[ ]` | **默认下一**：timeout / seccomp 真接线（≠ 宣称 C-5 `[x]`） |
 
-**验收（C-5b）：** WASM_SANDBOX=1 且 wasmtime 不可用 → null；未设 env → in-process 仍绿；ADR/env-registry 对齐；硬 KPI 不破；**不**宣称 C-5 `[x]`。timeout/seccomp 真接线 → **C-5c+** park。默认下一 → **C-6**。
+**验收（C-5b）：** WASM_SANDBOX=1 且 wasmtime 不可用 → null；未设 env → in-process 仍绿；ADR/env-registry 对齐；硬 KPI 不破；**不**宣称 C-5 `[x]`。  
+**开账（C-5c+）：** timeout/seccomp 真接线；硬 KPI 不破；**不**宣称 C-5 `[x]`。
 
 ### C-6 · Version / capability 单一 SSOT（P1） — `[x]`
 
@@ -181,7 +183,7 @@ formatter CST lossless；Ch15 隐式 `super.init` MD 诚实；语言书与 parse
 **验收（C-8c）：** 活清单 ≥20 行且 class/evidence 完整；开账时四 class 均出现；薄钉 + census 绿；硬 KPI 不破；**不**宣称 C-8 `[x]` / 分叉已收敛。  
 **验收（C-8d）：** F20–F23 en+zh 状态词一致 + Honesty；inventory 无活 `doc_debt`/`book_ahead`；硬 KPI 不破；**不**宣称 C-8 `[x]`。  
 **验收（C-8e）：** Ch10 en+zh Compatibility（C-8e）×2；inventory 无活 `legacy_accept`；硬 KPI 不破；**不**宣称 C-8 `[x]` / 去 parser legacy。  
-**验收（C-8f）：** UsageGuide en+zh Honesty ≠ lossless GA；薄钉绿；硬 KPI 不破；**不**宣称 C-8 `[x]` / CST 扩面。默认下一 → **C-3h**（ModuleId）。Soft park：CST lossless 实现 · 真 CallSuper · 去 parser legacy。
+**验收（C-8f）：** UsageGuide en+zh Honesty ≠ lossless GA；薄钉绿；硬 KPI 不破；**不**宣称 C-8 `[x]` / CST 扩面。Soft park：CST lossless 实现 · 真 CallSuper · 去 parser legacy。
 
 ## 3. 显式 park（非默认下一）
 

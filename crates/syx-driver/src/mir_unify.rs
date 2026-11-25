@@ -624,6 +624,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_branch_floor(&mir)?;
     // C-3g: JumpIfNil condition tag floor (MIR007) after branch floor.
     syx_mir::verify_mir_nil_branch_floor(&mir)?;
+    // C-3h: module name → ModuleId table after nil-branch (empty names OK).
+    let _mod_index = syx_mir::MirModIndex::build(&mir)?;
     Ok(mir)
 }
 
@@ -705,6 +707,8 @@ pub(crate) fn build_mir_from_graph(
     )?;
     let prelude_extensions = collect_stdlib_extension_methods(graph);
     let mut mir = syx_mir::MirModule::default();
+    // C-3h: populate ordered module identity stems (stem collision → MIR008).
+    mir.module_names = syx_mir::collect_module_names_from_paths(graph.order.iter().map(|p| p.as_path()))?;
     let exports_by_dep: IndexMap<PathBuf, IndexMap<SmolStr, TypeId>> = graph
         .modules
         .iter()
