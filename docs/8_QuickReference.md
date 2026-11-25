@@ -735,6 +735,8 @@ syx repl
 | `SYX_REGISTRY_CDN_PHASE6=1` | Registry CDN Phase 6: staging signed URL install |
 | `SYX_EMBED_SECCOMP=1` | Embed: Linux **net-deny seccomp-BPF** in worker (C-5c-2); non-Linux → null; ≠ full sandbox GA |
 | `SYX_EMBED_RSS_MB` | Embed: Linux `prlimit` · Windows Job Object memory hard wall (C-5d/C-5e); macOS → null |
+| `SYX_EMBED_MACOS_SANDBOX=1` | Embed: macOS Seatbelt net-deny via `sandbox-exec` on wasmtime; in-process → null (C-5f) |
+| `SYX_MACRO_MACOS_SANDBOX=1` | Macro: macOS child `sandbox_init(no-network)`; non-macOS → M040 (C-5f) |
 | `SYX_ATTACHED_HYGIENIC_V2=1` | `@attached` hygienic v2 templates (`{type}:{name}`) |
 | `SYX_LLVM_RELEASE_BLOCKER=1` | Optional LLVM strict parity PR release blocker (ADR-019) |
 | `SYX_LLVM_STRICT_GREEN_WEEKS=N` | ADR-017 promotion counter (≥4 green weeks for promotion) |

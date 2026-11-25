@@ -12,6 +12,8 @@
 //! C-5c-2: opt-in `SYX_EMBED_SECCOMP=1` → Linux net-deny BPF in worker thread; else null.
 //! C-5d: opt-in `SYX_EMBED_RSS_MB` → Linux `prlimit(RLIMIT_AS)` hard kill; MEMORY env∪CLI.
 //! C-5e: same env → Windows Job Object `PROCESS_MEMORY_LIMIT`; macOS/other → null.
+//! C-5f: opt-in `SYX_EMBED_MACOS_SANDBOX=1` → macOS Seatbelt net-deny via sandbox-exec on
+//! wasmtime child; in-process → null (Seatbelt is process-wide).
 
 #![allow(clippy::not_unsafe_ptr_arg_deref)] // C ABI entrypoints take raw pointers by design
 
@@ -142,11 +144,29 @@ fn embed_wasmtime_real_run(source: &str) -> Option<EmbedResult> {
     let wasm_path = dir.path().join("embed.wasm");
     std::fs::write(&wasm_path, &wasm).ok()?;
     let fuel = embed_wasm_fuel_limit();
-    let mut cmd = Command::new("wasmtime");
-    cmd.arg("run")
-        .arg(format!("--fuel={fuel}"))
-        .arg("--")
-        .arg(&wasm_path);
+    // C-5f: macOS Seatbelt via sandbox-exec wrapper around wasmtime.
+    let want_macos_sb = embed_macos_sandbox_enabled();
+    if want_macos_sb && !cfg!(target_os = "macos") {
+        return None;
+    }
+    let mut cmd = if want_macos_sb {
+        let mut c = Command::new("sandbox-exec");
+        c.arg("-n")
+            .arg(syx_macro::seatbelt_netdeny_sandbox_exec_profile())
+            .arg("wasmtime")
+            .arg("run")
+            .arg(format!("--fuel={fuel}"))
+            .arg("--")
+            .arg(&wasm_path);
+        c
+    } else {
+        let mut c = Command::new("wasmtime");
+        c.arg("run")
+            .arg(format!("--fuel={fuel}"))
+            .arg("--")
+            .arg(&wasm_path);
+        c
+    };
     // C-5d/C-5e: RSS hard wall on child (Linux prlimit / Windows Job Object); also honors timeout.
     let rss = embed_rss_limit_bytes();
     if rss.is_some() && !cfg!(any(target_os = "linux", target_os = "windows")) {
@@ -279,6 +299,13 @@ pub fn embed_rss_limit_bytes() -> Option<usize> {
         .map(|mb| mb.saturating_mul(1024 * 1024))
 }
 
+/// C-5f: opt-in macOS Seatbelt net-deny (`SYX_EMBED_MACOS_SANDBOX=1`).
+pub fn embed_macos_sandbox_enabled() -> bool {
+    std::env::var("SYX_EMBED_MACOS_SANDBOX")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
 fn embed_driver_options() -> DriverOptions {
     let mut opts = DriverOptions::default();
     if embed_sandbox_enabled() {
@@ -389,6 +416,20 @@ pub extern "C" fn syx_embed_v2_run(source: *const c_char) -> *mut SyxEmbedV2Resu
     if rss_limit.is_some() && !cfg!(any(target_os = "linux", target_os = "windows")) {
         let _ = compile_ok;
         return std::ptr::null_mut();
+    }
+    let want_macos_sb = embed_macos_sandbox_enabled();
+    // C-5f: Seatbelt is process-wide — in-process embed must not silently install on host.
+    // Non-macOS + env → null. macOS in-process (no wasmtime path) → null.
+    if want_macos_sb {
+        if !cfg!(target_os = "macos") {
+            let _ = compile_ok;
+            return std::ptr::null_mut();
+        }
+        if !embed_wasm_sandbox_enabled() {
+            let _ = compile_ok;
+            return std::ptr::null_mut();
+        }
+        // Fall through to wasmtime path below (sandbox-exec wrapper).
     }
     // C-5b: opt-in wasm sandbox must not silently fall back to in-process.
     if embed_wasm_sandbox_enabled() {

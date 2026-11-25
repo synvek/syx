@@ -4,6 +4,7 @@
 //! C-5c-2: opt-in `SYX_MACRO_SECCOMP=1` → Linux net-deny BPF in child; non-Linux fail-closed.
 //! C-5d: opt-in `SYX_MACRO_RSS_MB` → Linux `prlimit(RLIMIT_AS)` in child.
 //! C-5e: same env → Windows Job Object `PROCESS_MEMORY_LIMIT` (parent assign); else → M040.
+//! C-5f: opt-in `SYX_MACRO_MACOS_SANDBOX=1` → macOS Seatbelt net-deny in child; else → M040.
 
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
@@ -17,6 +18,7 @@ use crate::external_protocol::{
     MacroExpandRequest, MacroExpandResponse,
 };
 use crate::jobobject_windows::try_apply_rss_hard_wall_for_pid;
+use crate::macos_sandbox::try_install_seatbelt_netdeny;
 use crate::macro_error_at;
 use crate::rlimit_linux::try_set_as_limit_bytes;
 use crate::seccomp_linux::{
@@ -99,6 +101,15 @@ impl ExternalMacroExpander for SandboxMacroExpander {
                 "M040",
             ));
         }
+        // C-5f: non-macOS + SYX_MACRO_MACOS_SANDBOX=1 → fail-closed.
+        if macro_macos_sandbox_requested() && !cfg!(target_os = "macos") {
+            return Err(macro_error_at(
+                "macro macOS Seatbelt requested but unsupported on this OS (C-5f fail-closed)",
+                None,
+                Span::DUMMY,
+                "M040",
+            ));
+        }
         expand_via_subprocess(req).map_err(|e| {
             macro_error_at(
                 format!("macro sandbox subprocess failed: {e}"),
@@ -122,6 +133,12 @@ fn macro_rss_limit_bytes() -> Option<u64> {
         .ok()
         .and_then(|v| v.parse::<u64>().ok())
         .map(|mb| mb.saturating_mul(1024 * 1024))
+}
+
+fn macro_macos_sandbox_requested() -> bool {
+    std::env::var("SYX_MACRO_MACOS_SANDBOX")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
 }
 
 fn expand_via_subprocess(req: &MacroExpandRequest) -> SyxResult<MacroExpandResponse> {
@@ -247,6 +264,17 @@ pub fn macro_sandbox_child_main() -> SyxResult<()> {
                 )
             })?;
         }
+    }
+    // C-5f: macOS child installs Seatbelt net-deny before expand.
+    if macro_macos_sandbox_requested() {
+        try_install_seatbelt_netdeny().map_err(|e| {
+            macro_error_at(
+                format!("macro Seatbelt install failed: {e}"),
+                None,
+                Span::DUMMY,
+                "M040",
+            )
+        })?;
     }
     let mut input = String::new();
     std::io::stdin()

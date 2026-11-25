@@ -18,6 +18,8 @@ GB 配置 LTS 之后对 `SYX_*` 变量的清点。状态含义：**cli**（已�
 | `SYX_EMBED_MEMORY_MB` | soft-when-set | env 优先于 `syx --embed-memory-mb`；stdout 长度事后闸（C-5d 诚实；≠ 真堆计量） |
 | `SYX_EMBED_RSS_MB` | wired-subset | Linux `prlimit(RLIMIT_AS)` · Windows Job Object `PROCESS_MEMORY_LIMIT`（worker / wasmtime child）；macOS/其他 → null（C-5d/C-5e） |
 | `SYX_MACRO_RSS_MB` | wired-subset | Linux child `prlimit` · Windows 父进程 Job Object assign；超限 → M040；macOS/其他 → M040（C-5d/C-5e） |
+| `SYX_EMBED_MACOS_SANDBOX` | wired-subset-macos | macOS：wasmtime 经 `sandbox-exec -n no-network`；in-process → null；非 macOS → null（C-5f）；≠ App Sandbox GA |
+| `SYX_MACRO_MACOS_SANDBOX` | wired-subset-macos | macOS child `sandbox_init(SANDBOX_NAMED, no-network)`；非 macOS → M040（C-5f） |
 
 | `SYX_PERMISSION_SANDBOX` | deprecated | `syx --permission-sandbox`（M3-E02 / ADR-310） |
 | `SYX_ALLOW_NET` | deprecated | `syx --allow-net`（M3-E02 / ADR-310） |

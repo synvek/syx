@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: macOS opt-in Seatbelt net-deny (sandbox_init / sandbox-exec); in-process embed null; non-macOS fail-closed (C-5f)
 - feat: Windows opt-in Job Object PROCESS_MEMORY_LIMIT via SYX_*_RSS_MB; macOS fail-closed; Linux prlimit held (C-5e)
 - feat: Linux opt-in prlimit(RLIMIT_AS) hard wall for embed/macro/wasmtime; MEMORY env∪CLI; non-Linux fail-closed (C-5d)
 - feat: Linux opt-in net-deny seccomp-BPF for macro child + embed worker; non-Linux fail-closed (C-5c-2)

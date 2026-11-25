@@ -735,6 +735,8 @@ syx repl
 | `SYX_REGISTRY_CDN_PHASE6=1` | Registry CDN Phase 6：staging signed URL install |
 | `SYX_EMBED_SECCOMP=1` | Embed：Linux **net-deny seccomp-BPF**（C-5c-2）；非 Linux → null；≠ 全量 sandbox GA |
 | `SYX_EMBED_RSS_MB` | Embed：Linux `prlimit` · Windows Job Object 内存硬墙（C-5d/C-5e）；macOS → null |
+| `SYX_EMBED_MACOS_SANDBOX=1` | Embed：macOS Seatbelt net-deny（wasmtime `sandbox-exec`）；in-process → null（C-5f） |
+| `SYX_MACRO_MACOS_SANDBOX=1` | 宏：macOS child `sandbox_init(no-network)`；非 macOS → M040（C-5f） |
 | `SYX_ATTACHED_HYGIENIC_V2=1` | `@attached` hygienic v2 模板（`{type}:{name}`） |
 | `SYX_LLVM_RELEASE_BLOCKER=1` | LLVM strict parity 可选 PR release blocker（ADR-019） |
 | `SYX_LLVM_STRICT_GREEN_WEEKS=N` | ADR-017 晋升计数（≥4 周绿可 promotion） |

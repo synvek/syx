@@ -365,6 +365,71 @@ fn c5e_jobobject_hooks_and_fail_closed() {
 }
 
 #[test]
+fn c5f_macos_seatbelt_hooks_and_fail_closed() {
+    use std::ffi::CString;
+    use std::sync::Mutex;
+    use syx_driver::embed_v2::syx_embed_v2_run;
+
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _g = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let sb = std::fs::read_to_string(root.join("crates/syx-macro/src/macos_sandbox.rs"))
+        .expect("macos_sandbox");
+    assert!(
+        sb.contains("sandbox_init")
+            && sb.contains("SANDBOX_NAMED")
+            && sb.contains("no-network")
+            && sb.contains("try_install_seatbelt_netdeny")
+            && sb.contains("seatbelt-netdeny-wired")
+            && sb.contains("sandbox-exec")
+            && sb.contains("C-5f"),
+        "macos_sandbox must wire sandbox_init + no-network"
+    );
+    let embed = std::fs::read_to_string(root.join("crates/syx-driver/src/embed_v2.rs"))
+        .expect("embed_v2");
+    assert!(
+        embed.contains("embed_macos_sandbox_enabled")
+            && embed.contains("sandbox-exec")
+            && embed.contains("SYX_EMBED_MACOS_SANDBOX")
+            && embed.contains("C-5f"),
+        "embed must wire macOS Seatbelt / sandbox-exec"
+    );
+    let mac = std::fs::read_to_string(root.join("crates/syx-macro/src/external_sandbox.rs"))
+        .expect("sandbox");
+    assert!(
+        mac.contains("SYX_MACRO_MACOS_SANDBOX")
+            && mac.contains("try_install_seatbelt_netdeny")
+            && mac.contains("C-5f"),
+        "macro must install Seatbelt in child"
+    );
+
+    // In-process + SYX_EMBED_MACOS_SANDBOX=1 → null on all OS
+    // (macOS: process-wide Seatbelt forbidden on host; non-macOS: fail-closed).
+    std::env::remove_var("SYX_EMBED_WASM_SANDBOX");
+    std::env::remove_var("SYX_EMBED_RSS_MB");
+    std::env::remove_var("SYX_EMBED_SECCOMP");
+    std::env::set_var("SYX_EMBED_MACOS_SANDBOX", "1");
+    let src = CString::new("func main() { print(1) }").unwrap();
+    let ptr = syx_embed_v2_run(src.as_ptr());
+    assert!(
+        ptr.is_null(),
+        "C-5f: SYX_EMBED_MACOS_SANDBOX=1 without wasmtime path must null"
+    );
+    std::env::remove_var("SYX_EMBED_MACOS_SANDBOX");
+
+    assert_eq!(
+        syx_macro::MODE_SEATBELT_NETDENY_WIRED,
+        "seatbelt-netdeny-wired"
+    );
+    assert_eq!(
+        syx_macro::MODE_SEATBELT_UNSUPPORTED,
+        "seatbelt-unsupported-fail-closed"
+    );
+    assert_eq!(syx_macro::SEATBELT_NETDENY_NAMED_PROFILE, "no-network");
+}
+
+#[test]
 fn c5d_memory_cli_merge_and_hooks() {
     use std::sync::Mutex;
     use syx_config::{EmbedConfig, SyxRuntimeConfig};

@@ -9,6 +9,11 @@ mod engine;
 mod external;
 mod external_protocol;
 mod external_sandbox;
+mod macos_sandbox;
+pub use macos_sandbox::{
+    seatbelt_netdeny_sandbox_exec_profile, try_install_seatbelt_netdeny,
+    MODE_SEATBELT_NETDENY_WIRED, MODE_SEATBELT_UNSUPPORTED, SEATBELT_NETDENY_NAMED_PROFILE,
+};
 mod jobobject_windows;
 pub use jobobject_windows::{
     try_apply_rss_hard_wall_bytes, try_apply_rss_hard_wall_for_pid,

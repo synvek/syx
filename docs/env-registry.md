@@ -16,6 +16,8 @@ Audit of `SYX_*` variables after GB config LTS. Status: **cli** (replaced by fla
 | `SYX_EMBED_MEMORY_MB` | soft-when-set | env wins over `syx --embed-memory-mb`; stdout-sum soft gate (C-5d honest; ≠ true heap) |
 | `SYX_EMBED_RSS_MB` | wired-subset | Linux `prlimit(RLIMIT_AS)` · Windows Job Object `PROCESS_MEMORY_LIMIT` in worker / wasmtime child; macOS/other → null (C-5d/C-5e) |
 | `SYX_MACRO_RSS_MB` | wired-subset | Linux child `prlimit` · Windows parent Job Object assign; over-limit → M040; macOS/other → M040 (C-5d/C-5e) |
+| `SYX_EMBED_MACOS_SANDBOX` | wired-subset-macos | macOS: wasmtime under `sandbox-exec -n no-network`; in-process → null; non-macOS → null (C-5f); ≠ App Sandbox GA |
+| `SYX_MACRO_MACOS_SANDBOX` | wired-subset-macos | macOS child `sandbox_init(SANDBOX_NAMED, no-network)`; non-macOS → M040 (C-5f) |
 | `SYX_PERMISSION_SANDBOX` | deprecated | `syx --permission-sandbox` (M3-E02 / ADR-310) |
 | `SYX_ALLOW_NET` | deprecated | `syx --allow-net` (M3-E02 / ADR-310) |
 | `SYX_ALLOW_FS` | deprecated | `syx --allow-fs` (M3-E02 / ADR-311) |

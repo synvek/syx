@@ -228,6 +228,10 @@ Opt-in `SYX_EMBED_RSS_MB` / `SYX_MACRO_RSS_MB`: Linux **`prlimit(RLIMIT_AS)`** i
 
 Same `SYX_*_RSS_MB` env: **Windows** Job Object **`PROCESS_MEMORY_LIMIT`** on embed worker / wasmtime child / macro child (parent assign); over-limit → **null** / **M040**. Linux keeps prlimit. macOS/other + env → fail-closed. Census: [`c-5e-jobobject-thin-census`](../census/c-5e-jobobject-thin-census.md). C-5 remains `[~]`. **≠** full Job Object GA / macOS sandbox / C-5 `[x]` (→ **C-5f**).
 
+### C-5f (done · macOS Seatbelt net-deny thin gate)
+
+Opt-in `SYX_EMBED_MACOS_SANDBOX` / `SYX_MACRO_MACOS_SANDBOX`: **macOS** Seatbelt **net-deny** via `sandbox_init(SANDBOX_NAMED, "no-network")` in macro child and `sandbox-exec -n no-network` around wasmtime; **in-process embed → null**. Non-macOS + env → **null** / **M040**. Census: [`c-5f-macos-sandbox-thin-census`](../census/c-5f-macos-sandbox-thin-census.md). C-5 remains `[~]`. **≠** App Sandbox GA / full filter / C-5 `[x]` (→ **C-5g**).
+
 ### C-6a (done · version SSOT align)
 
 Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/c-6a-version-ssot-census.md).
@@ -274,4 +278,4 @@ UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **loss
 
 ## Next
 
-Default next after C-5e: **C-5f** — macOS sandbox thin gate (≠ claim C-5 `[x]`). C-5 remains `[~]` (C-5a/b/c-1/c-2/d/e done; macOS sandbox park). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.
+Default next after C-5f: **C-5g** — full Linux seccomp allowlist thin gate (≠ claim C-5 `[x]`). C-5 remains `[~]` (C-5a/b/c-1/c-2/d/e/f done; full filter park). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.
