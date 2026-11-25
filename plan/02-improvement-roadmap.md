@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-25 · **C-3l globals OOB 薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…l）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-25 · **C-3n param/local 元数据薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…n）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -114,12 +114,16 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3j** | `[x]` | 可选 `owner_module` + Def 地板：`verify_mir_def_floor` → **MIR010**（OOB owner；同 `(owner,name)` 冲突；全 None OK）；用户路径 populate；挂钩 try 之后；census [`c-3j-mir-def-floor-census`](../docs/census/c-3j-mir-def-floor-census.md) |
 | **C-3k** | `[x]` | 薄 locals 槽 OOB：`verify_mir_local_floor` → **MIR011**（LoadLocal/StoreLocal vs `local_count`）；挂钩 Def 之后；census [`c-3k-mir-local-floor-census`](../docs/census/c-3k-mir-local-floor-census.md) |
 | **C-3l** | `[x]` | 薄 globals 槽 OOB：`MirModule.global_count` + `verify_mir_global_floor` → **MIR012**（LoadGlobal/StoreGlobal）；lower populate；挂钩 local 之后；census [`c-3l-mir-global-floor-census`](../docs/census/c-3l-mir-global-floor-census.md) |
+| **C-3m** | `[x]` | 薄 CallHost 绝对索引：`verify_mir_call_host_floor` → **MIR013**（`host_fn_name_for_index`；≠ trim dense remap）；挂钩 global 之后；census [`c-3m-mir-call-host-floor-census`](../docs/census/c-3m-mir-call-host-floor-census.md) |
+| **C-3n** | `[x]` | 薄 param/local 元数据：`verify_mir_param_local_floor` → **MIR014**（`param_count ≤ local_count`；≠ locals 类型/φ）；挂钩 CallHost 之后；census [`c-3n-mir-param-local-floor-census`](../docs/census/c-3n-mir-param-local-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-3j）：** OOB / 同 module 重名 owner → **MIR010**；全 `None` 与空单文件不破；硬 KPI 不破；**C-3j `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-3k）：** LoadLocal/StoreLocal 槽 ≥ `local_count` → **MIR011**；合法槽与空函数不破；硬 KPI 不破；**C-3k `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
-**验收（C-3l）：** LoadGlobal/StoreGlobal 槽 ≥ `global_count` → **MIR012**；合法程序与空模块不破；硬 KPI 不破；**C-3l `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3l）：** LoadGlobal/StoreGlobal 槽 ≥ `global_count` → **MIR012**；合法程序与空模块不破；硬 KPI 不破；**C-3l `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-3m）：** 不可解析 `CallHost(i)` → **MIR013**；合法绝对索引与无 CallHost 不破；硬 KPI 不破；**C-3m `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-3n）：** `param_count > local_count` → **MIR014**；合法元数据与空函数不破；硬 KPI 不破；**C-3n `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 

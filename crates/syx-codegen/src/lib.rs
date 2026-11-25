@@ -765,6 +765,10 @@ impl CodeGenerator {
             mir.global_count,
             best_by_name.values().copied(),
         )?;
+        // C-3m: absolute CallHost index floor on post-unique bodies (MIR013).
+        syx_mir::verify_mir_call_host_floor_functions(best_by_name.values().copied())?;
+        // C-3n: param_count ≤ local_count metadata floor on post-unique bodies (MIR014).
+        syx_mir::verify_mir_param_local_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

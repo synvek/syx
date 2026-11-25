@@ -1,4 +1,6 @@
 ### SYX 0.4.0
+- feat: MIR param_count ≤ local_count metadata floor → MIR014 (≠ locals type/φ) (C-3n; ≠ C-3 `[x]`)
+- feat: MIR CallHost absolute-index floor → MIR013 (host_fn_name_for_index; ≠ trim dense remap) (C-3m; ≠ C-3 `[x]`)
 - feat: MirModule.global_count + MIR globals OOB floor → MIR012 (LoadGlobal/StoreGlobal; ≠ name table/remap) (C-3l; ≠ C-3 `[x]`)
 - feat: MIR locals slot OOB floor → MIR011 (LoadLocal/StoreLocal vs local_count; ≠ locals type/φ) (C-3k; ≠ C-3 `[x]`)
 - feat: optional MirFunction.owner_module + Def floor → MIR010 (OOB owner; dup (owner,name); ≠ DefId graph) (C-3j; ≠ C-3 `[x]`)

@@ -17,6 +17,8 @@ mod c3i_mir_try_floor_contract;
 mod c3j_mir_def_floor_contract;
 mod c3k_mir_local_floor_contract;
 mod c3l_mir_global_floor_contract;
+mod c3m_mir_call_host_floor_contract;
+mod c3n_mir_param_local_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;

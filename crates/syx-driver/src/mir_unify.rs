@@ -658,6 +658,10 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_local_floor(&mir)?;
     // C-3l: LoadGlobal/StoreGlobal slot OOB floor (MIR012) after local.
     syx_mir::verify_mir_global_floor(&mir)?;
+    // C-3m: absolute CallHost index floor (MIR013) after global.
+    syx_mir::verify_mir_call_host_floor(&mir)?;
+    // C-3n: param_count ≤ local_count metadata floor (MIR014) after CallHost.
+    syx_mir::verify_mir_param_local_floor(&mir)?;
     Ok(mir)
 }
 

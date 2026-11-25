@@ -39,6 +39,12 @@ pub use mir_global_floor::{
     absorb_mir_global_count, mir_global_slot_bound, verify_mir_global_floor,
     verify_mir_global_floor_functions,
 };
+mod mir_call_host_floor;
+pub use mir_call_host_floor::{verify_mir_call_host_floor, verify_mir_call_host_floor_functions};
+mod mir_param_local_floor;
+pub use mir_param_local_floor::{
+    verify_mir_param_local_floor, verify_mir_param_local_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
