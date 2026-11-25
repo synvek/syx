@@ -799,6 +799,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_pop_stack_floor_functions(best_by_name.values().copied())?;
         // C-3y: non-empty MirFunction.name (MIR025) after pop-stack.
         syx_mir::verify_mir_fn_name_floor_functions(best_by_name.values().copied())?;
+        // C-3z: non-empty block instructions (MIR026) after fn-name.
+        syx_mir::verify_mir_block_instr_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
