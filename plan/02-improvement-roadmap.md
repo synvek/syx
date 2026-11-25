@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-25 · **C-5h permission default-on `[x]`**；C-5 `[~]`（不宣称 `[x]`）；C-3 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（C-3 全量 MirOp / 或 P0 余债；不自动 C-5 `[x]`）。
+> **最近更新：** 2026-11-25 · **C-3i try-floor MIR009 `[x]`**；C-3 `[~]`（不宣称 `[x]`）；C-5 `[~]`（a…h `[x]`）；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（P0 Unknown 实参 / 或 C-3 DefId；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -108,8 +108,10 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3f** | `[x]` | 薄 `JumpIfFalse` 条件 tag：`verify_mir_branch_floor` → MIR006（仅 `Bool|Unknown`；比较/逻辑作 Bool 生产者）；挂钩 type 之后；census [`c-3f-mir-branch-floor-census`](../docs/census/c-3f-mir-branch-floor-census.md) |
 | **C-3g** | `[x]` | 薄 `JumpIfNil` 条件 tag：`verify_mir_nil_branch_floor` → MIR007（仅 `Nil|Unknown`；Nil pop / Unknown 留栈）；挂钩 branch 之后；census [`c-3g-mir-nil-branch-floor-census`](../docs/census/c-3g-mir-nil-branch-floor-census.md) |
 | **C-3h** | `[x]` | 薄 `ModuleId` / `MirModIndex`（`module_names`→稠密 id）→ MIR008；stem 撞路径 fail-closed；挂钩 nil-branch 之后；census [`c-3h-mir-mod-index-census`](../docs/census/c-3h-mir-mod-index-census.md) |
+| **C-3i** | `[x]` | 薄 try/catch 配对地板：`verify_mir_try_floor` → **MIR009**（BeginTry/EndTry 深度；orphan/excess Catch）；挂钩 ModuleId 之后；census [`c-3i-mir-try-floor-census`](../docs/census/c-3i-mir-try-floor-census.md) |
 
-**验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。
+**验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
+**验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 

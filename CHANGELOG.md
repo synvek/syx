@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR try/catch pairing floor → MIR009 (BeginTry/EndTry depth; orphan/excess Catch; ≠ full exception) (C-3i; ≠ C-3 `[x]`)
 - feat: permission-sandbox default-on + `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0` opt-out; ungated HostFn → S024 (C-5h; ≠ C-5 `[x]`)
 - feat: Linux opt-in default-deny seccomp allowlist (v11+supplements); mutex with SYX_*_SECCOMP; non-Linux fail-closed (C-5g)
 - feat: macOS opt-in Seatbelt net-deny (sandbox_init / sandbox-exec); in-process embed null; non-macOS fail-closed (C-5f)

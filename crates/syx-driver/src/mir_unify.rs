@@ -626,6 +626,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_nil_branch_floor(&mir)?;
     // C-3h: module name → ModuleId table after nil-branch (empty names OK).
     let _mod_index = syx_mir::MirModIndex::build(&mir)?;
+    // C-3i: try/catch pairing floor (MIR009) after ModuleId.
+    syx_mir::verify_mir_try_floor(&mir)?;
     Ok(mir)
 }
 

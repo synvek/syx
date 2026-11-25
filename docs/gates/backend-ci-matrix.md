@@ -282,4 +282,4 @@ UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **loss
 
 ## Next
 
-Default next after C-5h: **跨轴** — C-3 全量 MirOp / exception / DefId，或 P0 余债首项（**不**宣称 / 不自动 C-5 `[x]`）。C-5 remains `[~]` (C-5a…**h** done; true full syscall GA park). C-3 remains `[~]` (C-3a…h done; full MirOp/exception/DefId park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.
+Default next after C-3i: **跨轴** — P0 调用实参 Unknown sink 薄闸，或 C-3 DefId 薄窗（**不**宣称 C-3/C-5 `[x]`）。C-3 remains `[~]` (C-3a…**i** done; full MirOp/DefId/完整 exception park). C-5 remains `[~]` (C-5a…**h** done; true full syscall GA park). C-8 remains `[~]` (CST lossless park). C-7 remains `[~]` (C-7c+ park). **C-6 `[x]`**. **C-4 `[x]`**.
