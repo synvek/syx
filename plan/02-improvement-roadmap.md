@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-25 · **C-3i try-floor MIR009 `[x]`**；C-3 `[~]`（不宣称 `[x]`）；C-5 `[~]`（a…h `[x]`）；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（P0 Unknown 实参 / 或 C-3 DefId；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-25 · **C-0f call-arg Unknown sink `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（C-3 DefId 薄窗 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -46,10 +46,12 @@
 | **C-0c** | `[x]` | 非泛型自由函数 **arity** → **S061**（计 default；标签仍 S042；类型错仍 S004）；census [`c-0c-call-arity-census`](../docs/census/c-0c-call-arity-census.md) |
 | **C-0d** | `[x]` | `&mut` 裸值传参拒收（AST `Borrow{mutable:true}`；剥 Group；勿改 `deref_type` / is_compatible 臂）；census [`c-0d-mut-ref-arg-census`](../docs/census/c-0d-mut-ref-arg-census.md) |
 | **C-0a** | `[x]` 薄闸 | Unknown→地面具体汇点（无注解形参 / 缺失 Member）；**未**关 `(_, Unknown)`；census [`c-0a-unknown-sink-census`](../docs/census/c-0a-unknown-sink-census.md) |
-| **C-0a+** | `[-]` park | `ErrorType` / `InferenceVar` 三分；关软臂；调用实参 Unknown |
+| **C-0f** | `[x]` | 调用实参 Unknown→地面具体形参 → **S004**（复用 `check_unknown_to_ground_sink`；**未**关软臂）；census [`c-0f-call-arg-unknown-sink-census`](../docs/census/c-0f-call-arg-unknown-sink-census.md) |
+| **C-0a+** | `[-]` park | `ErrorType` / `InferenceVar` 三分；关 `is_compatible(_, Unknown)` 软臂 |
 | **C-0e** | `[-]` park | integer narrowing / 书 S008 对齐 |
 
 **验收：** 新负向用例进 gate；正向回归不破硬 KPI；census 写清「拒收面」而非「多了多少通过」。  
+**验收（C-0f）：** `wrap(_ x) { take(x) }`（`take` 形参 Int）→ **S004**；`Any`/`Object`/字面量不破；硬 KPI 不破；**C-0f `[x]`**；**C-0a+ 仍 park**；默认下一 → **跨轴**（C-3 DefId / 或 P0 余债；**不**宣称 C-3/C-5 `[x]`）。  
 **不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG。
 
 ### C-1 · ManagedHeap 安全默认（P0） — `[x]` 默认降级+identity+immutable+叙事

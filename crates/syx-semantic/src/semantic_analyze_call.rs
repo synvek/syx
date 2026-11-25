@@ -758,6 +758,15 @@ impl SemanticAnalyzer {
                                 "S004",
                             ));
                         }
+                        // C-0f: Unknown from untyped param / missing member → ground param.
+                        // Do not close is_compatible(_, Unknown); callee Unknown params still skipped above.
+                        self.check_unknown_to_ground_sink(
+                            param_ty,
+                            &found,
+                            &arg.value,
+                            name.as_str(),
+                            expr_span(&arg.value),
+                        )?;
                         self.check_assignable_with_literal(
                             param_ty.clone(),
                             found,
@@ -986,6 +995,14 @@ impl SemanticAnalyzer {
                 self.check_mutating_call_on_immutable(object, &obj_ty, name.as_str(), *span);
                 if let Some((elem, role)) = collection_elem {
                     let found = self.analyze_expr_with_expected(&args[0].value, Some(&elem))?;
+                    // C-0f: Unknown → ground collection element (same sink as free-fn args).
+                    self.check_unknown_to_ground_sink(
+                        &elem,
+                        &found,
+                        &args[0].value,
+                        role,
+                        expr_span(&args[0].value),
+                    )?;
                     self.check_assignable_with_literal(
                         elem,
                         found,

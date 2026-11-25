@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-25 · **C-3i try-floor MIR009 `[x]`**；C-3 `[~]`（不宣称 `[x]`）；C-5 `[~]`（a…h `[x]`）；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；下一 = **跨轴**（P0 Unknown 实参 / 或 C-3 DefId；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-25 · **C-0f call-arg Unknown sink `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；下一 = **跨轴**（C-3 DefId 薄窗 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 1. 一句话现状
 
@@ -79,7 +79,7 @@ flowchart LR
 
 ### P0 — 正确性与安全边界（默认下一）
 
-1. **类型 soundness**：`ErrorType` / `InferenceVar` / 合法 dynamic 三分；return、arity、`&mut`、narrowing 负向闸  
+1. **类型 soundness**：C-0a…d + **C-0f** call-arg Unknown sink 已闸；`ErrorType` / `InferenceVar` 三分 / 关软臂 / narrowing 仍 park（C-0a+/C-0e）
 2. **ManagedHeap**：C-1 轴已退出（默认降级 · weak identity · immutable 拒写 · churn 叙事清扫）；算法厚修仍 park（C-1a+）  
 3. **Backend 支持矩阵**：C-2 `[x]`（SSOT + 16× paid `native=real` + JIT label + `ci.job.*` surface 对齐）；余债 park（`net.tls.server` · macOS full-native）
 4. **MIR 输入**：C-3a…C-3i done；全量 MirOp / DefId / 完整 exception 仍 park

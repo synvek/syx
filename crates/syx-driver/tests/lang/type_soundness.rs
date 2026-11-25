@@ -2,6 +2,7 @@
 //! C-0c: free-function arity (S061).
 //! C-0d: `&mut` bare-value args rejected (S004).
 //! C-0a: Unknown→ground sinks from untyped params / missing members (S004).
+//! C-0f: call-arg Unknown→ground concrete params (S004; ≠ close soft arm).
 
 fn compile_fail_code(src: &str) -> Option<String> {
     syx_host_plugin::register_echo_plugin_in_process();
@@ -327,12 +328,48 @@ func main() { }
 }
 
 #[test]
-fn c0a_untyped_arg_to_int_param_still_ok() {
-    compile_ok(
+fn c0f_untyped_arg_to_int_param_s004() {
+    // C-0f: retired C-0a "still_ok" green nail — call-arg Unknown→Int must S004.
+    let code = compile_fail_code(
         r#"
 func take(_ n: Int) { }
 func wrap(_ x) { take(x) }
 func main() { wrap(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+func take(_ n: Int) { }
+func wrap(_ x) { take(x) }
+func main() { wrap(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0f_untyped_arg_to_any_still_ok() {
+    compile_ok(
+        r#"
+func take(_ n: Any) { }
+func wrap(_ x) { take(x) }
+func main() { wrap(1) }
+"#,
+    );
+}
+
+#[test]
+fn c0f_literal_arg_to_int_still_ok() {
+    compile_ok(
+        r#"
+func take(_ n: Int) { }
+func main() { take(1) }
 "#,
     );
 }
