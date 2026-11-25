@@ -783,6 +783,8 @@ impl CodeGenerator {
         )?;
         // C-3q: Array/Dict/SetBuild stack-height floor on post-unique bodies (MIR017).
         syx_mir::verify_mir_build_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3r: non-empty local debug vectors vs local_count on post-unique bodies (MIR018).
+        syx_mir::verify_mir_local_debug_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
