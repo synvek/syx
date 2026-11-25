@@ -678,6 +678,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_block_id_floor(&mir)?;
     // C-3v: flat↔blocks instruction-count (MIR022) after block-id.
     syx_mir::verify_mir_flat_blocks_floor(&mir)?;
+    // C-3w: terminator Jump* target ∈ successors (MIR023) after flat-blocks.
+    syx_mir::verify_mir_succ_term_floor(&mir)?;
     Ok(mir)
 }
 

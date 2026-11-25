@@ -27,6 +27,7 @@ mod c3s_mir_aot_export_floor_contract;
 mod c3t_mir_init_pc_floor_contract;
 mod c3u_mir_block_id_floor_contract;
 mod c3v_mir_flat_blocks_floor_contract;
+mod c3w_mir_succ_term_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;
