@@ -26,6 +26,7 @@ fn p98_native_llvm_direct_sync_main_shim() {
             local_types: vec![],
             init_body_pc: 0,
             init_wrap_pc: 0,
+            owner_module: None,
         }],
         ..Default::default()
     };

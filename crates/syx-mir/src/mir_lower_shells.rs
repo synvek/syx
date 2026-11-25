@@ -45,6 +45,7 @@ pub(crate) fn mir_shell_fn(
         local_types: vec![],
         init_body_pc: 0,
         init_wrap_pc: 0,
+        owner_module: None,
     }
 }
 
@@ -201,6 +202,7 @@ pub fn lower_varglobal_inits(module: &Module) -> SyxResult<Vec<MirFunction>> {
         local_types,
         init_body_pc: 0,
         init_wrap_pc: 0,
+        owner_module: None,
     });
     Ok(out)
 }

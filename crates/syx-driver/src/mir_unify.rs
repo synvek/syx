@@ -442,6 +442,19 @@ fn append_mir_functions(mir: &mut syx_mir::MirModule, functions: &[MirFunction])
     }
 }
 
+/// C-3j: resolve path stem → ModuleId index into `mir.module_names` (None if missing).
+fn owner_module_for_path(mir: &syx_mir::MirModule, path: &Path) -> Option<u32> {
+    let stem = path.file_stem().and_then(|s| s.to_str())?;
+    mir.module_names
+        .iter()
+        .position(|n| n.as_str() == stem)
+        .map(|i| i as u32)
+}
+
+fn set_owner_module(func: &mut MirFunction, owner: Option<u32>) {
+    func.owner_module = owner;
+}
+
 fn store_stdlib_mir_process(
     tag: String,
     mono_key: u64,
@@ -628,6 +641,8 @@ pub fn build_unified_mir(
     let _mod_index = syx_mir::MirModIndex::build(&mir)?;
     // C-3i: try/catch pairing floor (MIR009) after ModuleId.
     syx_mir::verify_mir_try_floor(&mir)?;
+    // C-3j: optional owner_module Def floor (MIR010) after try.
+    syx_mir::verify_mir_def_floor(&mir)?;
     Ok(mir)
 }
 
@@ -756,6 +771,7 @@ pub(crate) fn build_mir_from_graph(
             syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
             let dep_mir = lower_module(&dep_mono)?;
             let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+            let owner = owner_module_for_path(&mir, &dep.path);
             let mut batch: Vec<_> = dep_mir
                 .functions
                 .into_iter()
@@ -763,7 +779,8 @@ pub(crate) fn build_mir_from_graph(
                 .collect();
             if !batch.is_empty() {
                 syx_mir::prefix_user_dep_mir_batch(&mut batch, module_stem);
-                for func in batch {
+                for mut func in batch {
+                    set_owner_module(&mut func, owner);
                     if !mir.functions.iter().any(|f| f.name == func.name) {
                         mir.functions.push(func);
                     }
@@ -796,7 +813,9 @@ pub(crate) fn build_mir_from_graph(
         &int_kinds,
         Some(&entry.source),
     )?;
-    for func in entry_mir.functions {
+    let entry_owner = owner_module_for_path(&mir, &entry.path);
+    for mut func in entry_mir.functions {
+        set_owner_module(&mut func, entry_owner);
         if let Some(pos) = mir.functions.iter().position(|f| f.name == func.name) {
             // S1-I7: extension convenience `init() { self.init(x:0,y:0) }` embeds
             // ConstNumeric field literals — replace the memberwise shell so `Point()`

@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: optional MirFunction.owner_module + Def floor → MIR010 (OOB owner; dup (owner,name); ≠ DefId graph) (C-3j; ≠ C-3 `[x]`)
 - feat: call-arg Unknown→ground concrete param → S004 (reuse C-0a sink; ≠ close soft arm) (C-0f; C-0a+ still park)
 - feat: MIR try/catch pairing floor → MIR009 (BeginTry/EndTry depth; orphan/excess Catch; ≠ full exception) (C-3i; ≠ C-3 `[x]`)
 - feat: permission-sandbox default-on + `--no-permission-sandbox` / `SYX_PERMISSION_SANDBOX=0` opt-out; ungated HostFn → S024 (C-5h; ≠ C-5 `[x]`)

@@ -414,6 +414,7 @@ pub(crate) fn lower_class_init(
         local_types,
         init_body_pc,
         init_wrap_pc,
+        owner_module: None,
     });
     mir.functions.extend(closures);
     Ok(())

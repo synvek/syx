@@ -45,6 +45,7 @@ fn mir_fn(name: &str, param_count: u32, extra_nops: usize) -> MirFunction {
         local_types: vec![],
         init_body_pc: 0,
         init_wrap_pc: 0,
+        owner_module: None,
     }
 }
 

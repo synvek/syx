@@ -32,6 +32,7 @@ fn multi_fn_sync_module() -> MirModule {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             },
             MirFunction {
                 name: "main".into(),
@@ -64,6 +65,7 @@ fn multi_fn_sync_module() -> MirModule {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             },
         ],
         ..Default::default()

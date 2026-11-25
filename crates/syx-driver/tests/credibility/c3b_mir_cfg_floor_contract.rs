@@ -24,6 +24,7 @@ fn mir_fn(name: &str, entry: u32, blocks: Vec<MirBlock>) -> MirFunction {
         local_types: vec![],
         init_body_pc: 0,
         init_wrap_pc: 0,
+        owner_module: None,
     }
 }
 

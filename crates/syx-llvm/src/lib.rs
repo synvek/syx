@@ -3442,6 +3442,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3469,6 +3470,7 @@ mod tests {
             local_types: vec![],
             init_body_pc: 0,
             init_wrap_pc: 0,
+            owner_module: None,
         }
     }
 
@@ -3566,6 +3568,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3628,6 +3631,7 @@ mod tests {
                     local_types: vec![],
                     init_body_pc: 0,
                     init_wrap_pc: 0,
+                    owner_module: None,
                 },
                 MirFunction {
                     name: "c0".into(),
@@ -3640,6 +3644,7 @@ mod tests {
                     local_types: vec![],
                     init_body_pc: 0,
                     init_wrap_pc: 0,
+                    owner_module: None,
                 },
             ],
             ..Default::default()
@@ -3709,6 +3714,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3760,6 +3766,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3803,6 +3810,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3849,6 +3857,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3895,6 +3904,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3939,6 +3949,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -3998,6 +4009,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         })
@@ -4037,6 +4049,7 @@ mod tests {
                 local_types: vec![],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             }],
             ..Default::default()
         };
@@ -4226,6 +4239,7 @@ mod tests {
             local_types: vec![],
             init_body_pc: 0,
             init_wrap_pc: 0,
+            owner_module: None,
         }
     }
 

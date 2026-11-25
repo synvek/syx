@@ -148,6 +148,7 @@ fn stub_mir_function_for_blob(func: &MirFunction) -> MirFunction {
         local_types: func.local_types.clone(),
         init_body_pc: func.init_body_pc,
         init_wrap_pc: func.init_wrap_pc,
+        owner_module: func.owner_module,
     }
 }
 
@@ -331,6 +332,7 @@ pub(crate) fn aot_size_fixture_fn(name: &str, ops: Vec<MirOp>) -> MirFunction {
         local_types: vec![],
         init_body_pc: 0,
         init_wrap_pc: 0,
+        owner_module: None,
     }
 }
 
@@ -455,6 +457,7 @@ pub fn module_with_execution_string_table_stripped(module: &MirModule) -> MirMod
                 local_types: func.local_types.clone(),
                 init_body_pc: func.init_body_pc,
                 init_wrap_pc: func.init_wrap_pc,
+                owner_module: func.owner_module,
             })
             .collect(),
         aot_export_roots: module.aot_export_roots.clone(),

@@ -753,6 +753,11 @@ impl CodeGenerator {
         let _mod_index = syx_mir::MirModIndex::build(mir)?;
         // C-3i: try/catch pairing floor on post-unique bodies (MIR009).
         syx_mir::verify_mir_try_floor_functions(best_by_name.values().copied())?;
+        // C-3j: optional owner_module Def floor on post-unique bodies (MIR010).
+        syx_mir::verify_mir_def_floor_functions(
+            mir.module_names.len(),
+            best_by_name.values().copied(),
+        )?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

@@ -36,6 +36,7 @@ fn sync_main_module() -> MirModule {
             local_types: vec![],
             init_body_pc: 0,
             init_wrap_pc: 0,
+            owner_module: None,
         }],
         ..Default::default()
     }
@@ -66,6 +67,7 @@ fn async_main_module() -> MirModule {
             local_types: vec![],
             init_body_pc: 0,
             init_wrap_pc: 0,
+            owner_module: None,
         }],
         ..Default::default()
     }

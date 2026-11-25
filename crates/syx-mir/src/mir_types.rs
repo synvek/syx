@@ -323,6 +323,10 @@ pub struct MirFunction {
     /// Phase 135: PC of MutRefCell wrap epilogue (super init stops here).
     #[serde(default)]
     pub init_wrap_pc: u32,
+    /// C-3j: optional owner [`ModuleId`] (= index into [`MirModule::module_names`]).
+    /// `None` = unset (stdlib merge / single-file / legacy OK). ≠ full DefId graph.
+    #[serde(default)]
+    pub owner_module: Option<u32>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]

@@ -39,6 +39,7 @@ fn sort_by_mir() -> MirModule {
             local_types: vec![],
             init_body_pc: 0,
             init_wrap_pc: 0,
+            owner_module: None,
         }],
         ..Default::default()
     }

@@ -410,6 +410,7 @@ pub(crate) fn append_protocol_stub_functions(mir: &mut MirModule, module_idx: &M
                 local_types: vec![SmolStr::new("Unknown")],
                 init_body_pc: 0,
                 init_wrap_pc: 0,
+                owner_module: None,
             });
         }
     }

@@ -131,6 +131,7 @@ pub(crate) fn lower_function_with_params(
             local_types,
             init_body_pc: 0,
             init_wrap_pc: 0,
+            owner_module: None,
         },
         closures,
     ))
