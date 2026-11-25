@@ -29,6 +29,7 @@ mod c3u_mir_block_id_floor_contract;
 mod c3v_mir_flat_blocks_floor_contract;
 mod c3w_mir_succ_term_floor_contract;
 mod c3x_mir_pop_stack_floor_contract;
+mod c3y_mir_fn_name_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;

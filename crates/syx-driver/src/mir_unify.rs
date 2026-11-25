@@ -682,6 +682,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_succ_term_floor(&mir)?;
     // C-3x: Pop stack-height floor (MIR024) after succ-term.
     syx_mir::verify_mir_pop_stack_floor(&mir)?;
+    // C-3y: non-empty MirFunction.name (MIR025) after pop-stack.
+    syx_mir::verify_mir_fn_name_floor(&mir)?;
     Ok(mir)
 }
 

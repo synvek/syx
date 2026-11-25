@@ -797,6 +797,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_succ_term_floor_functions(best_by_name.values().copied())?;
         // C-3x: Pop stack-height on post-unique bodies (MIR024) after succ-term.
         syx_mir::verify_mir_pop_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3y: non-empty MirFunction.name (MIR025) after pop-stack.
+        syx_mir::verify_mir_fn_name_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
