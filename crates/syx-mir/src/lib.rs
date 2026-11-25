@@ -34,6 +34,11 @@ pub use mir_def_floor::{
 };
 mod mir_local_floor;
 pub use mir_local_floor::{verify_mir_local_floor, verify_mir_local_floor_functions};
+mod mir_global_floor;
+pub use mir_global_floor::{
+    absorb_mir_global_count, mir_global_slot_bound, verify_mir_global_floor,
+    verify_mir_global_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
@@ -1777,6 +1782,7 @@ func main() {
             functions: mir.functions.clone(),
             aot_export_roots: vec![],
             module_names: mir.module_names.clone(),
+            global_count: mir.global_count,
         };
         let cleared_emit = llvm_emit_function_names(&cleared);
         assert!(

@@ -343,6 +343,11 @@ pub struct MirModule {
     /// ≠ DefId · ≠ Call(ModuleId) IR · ≠ AST `Module.name` (often `"main"`).
     #[serde(default)]
     pub module_names: Vec<SmolStr>,
+    /// C-3l: declared global slot bound (`VarGlobal` count at lower).
+    /// `LoadGlobal`/`StoreGlobal` must use `i < global_count`. Default 0 = no globals /
+    /// legacy OK until populate. ≠ global name table · ≠ cross-module remap.
+    #[serde(default)]
+    pub global_count: u32,
 }
 
 /// Borrow [`MirModule::aot_export_roots`] as `&str` refs for emit/compact helpers.

@@ -760,6 +760,11 @@ impl CodeGenerator {
         )?;
         // C-3k: LoadLocal/StoreLocal slot OOB floor on post-unique bodies (MIR011).
         syx_mir::verify_mir_local_floor_functions(best_by_name.values().copied())?;
+        // C-3l: LoadGlobal/StoreGlobal slot OOB floor on post-unique bodies (MIR012).
+        syx_mir::verify_mir_global_floor_functions(
+            mir.global_count,
+            best_by_name.values().copied(),
+        )?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
@@ -1032,6 +1037,8 @@ impl CodeGenerator {
                 gen.program.globals.push(name.clone());
             }
         }
+        // C-3l: keep MIR global_count ≥ registered VarGlobal table (AST→MIR path).
+        syx_mir::absorb_mir_global_count(&mut mir_work, gen.program.globals.len() as u32);
         syx_mir::merge_mir_functions(&mut mir_work, syx_mir::lower_varglobal_inits(module)?);
         // S2-I138 / ADR stage2-s2-03-type-shell-delete: no compile_type_shells hook.
         Self::compile_from_mir_with_source(

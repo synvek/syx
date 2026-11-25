@@ -440,6 +440,17 @@ fn append_mir_functions(mir: &mut syx_mir::MirModule, functions: &[MirFunction])
             mir.functions.push(func.clone());
         }
     }
+    // C-3l: function-only fragments (stdlib cache) may omit MirModule.global_count —
+    // raise bound from max Load/StoreGlobal slot so legitimate stdlib does not MIR012.
+    syx_mir::absorb_mir_global_count(mir, syx_mir::mir_global_slot_bound(functions.iter()));
+}
+
+fn absorb_fragment_global_count(mir: &mut syx_mir::MirModule, fragment: &syx_mir::MirModule) {
+    syx_mir::absorb_mir_global_count(mir, fragment.global_count);
+    syx_mir::absorb_mir_global_count(
+        mir,
+        syx_mir::mir_global_slot_bound(fragment.functions.iter()),
+    );
 }
 
 /// C-3j: resolve path stem → ModuleId index into `mir.module_names` (None if missing).
@@ -645,6 +656,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_def_floor(&mir)?;
     // C-3k: LoadLocal/StoreLocal slot OOB floor (MIR011) after Def.
     syx_mir::verify_mir_local_floor(&mir)?;
+    // C-3l: LoadGlobal/StoreGlobal slot OOB floor (MIR012) after local.
+    syx_mir::verify_mir_global_floor(&mir)?;
     Ok(mir)
 }
 
@@ -772,6 +785,7 @@ pub(crate) fn build_mir_from_graph(
             );
             syx_mir::merge_mir_shell_functions(&mut mir, syx_mir::lower_enum_shells(&dep_mono));
             let dep_mir = lower_module(&dep_mono)?;
+            absorb_fragment_global_count(&mut mir, &dep_mir);
             let module_stem = dep.path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
             let owner = owner_module_for_path(&mir, &dep.path);
             let mut batch: Vec<_> = dep_mir
@@ -815,6 +829,7 @@ pub(crate) fn build_mir_from_graph(
         &int_kinds,
         Some(&entry.source),
     )?;
+    absorb_fragment_global_count(&mut mir, &entry_mir);
     let entry_owner = owner_module_for_path(&mir, &entry.path);
     for mut func in entry_mir.functions {
         set_owner_module(&mut func, entry_owner);

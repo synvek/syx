@@ -99,6 +99,7 @@ mod tests {
             ],
             aot_export_roots: vec![],
             module_names: vec![],
+            global_count: 0,
         };
         assert!(collect_call_host_indices_reachable(&module).is_empty());
         assert!(collect_call_host_indices(&module).contains(&42));

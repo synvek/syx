@@ -218,5 +218,7 @@ pub fn lower_module_with_extra_extensions_kinds_and_source(
             _ => {}
         }
     }
+    // C-3l: declare global slot bound from VarGlobal name table length.
+    mir.global_count = globals.len() as u32;
     Ok(mir)
 }
