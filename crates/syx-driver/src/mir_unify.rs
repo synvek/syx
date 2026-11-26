@@ -708,6 +708,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_bitnot_stack_floor(&mir)?;
     // C-3ak: NumericCast stack-height floor (MIR037) after bitnot-stack.
     syx_mir::verify_mir_numeric_cast_stack_floor(&mir)?;
+    // C-3al: MakeClosure stack-height floor (MIR038) after numeric-cast-stack.
+    syx_mir::verify_mir_make_closure_stack_floor(&mir)?;
     Ok(mir)
 }
 

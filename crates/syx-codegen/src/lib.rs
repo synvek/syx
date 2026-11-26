@@ -823,6 +823,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_bitnot_stack_floor_functions(best_by_name.values().copied())?;
         // C-3ak: NumericCast stack-height floor (MIR037) after bitnot-stack.
         syx_mir::verify_mir_numeric_cast_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3al: MakeClosure stack-height floor (MIR038) after numeric-cast-stack.
+        syx_mir::verify_mir_make_closure_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

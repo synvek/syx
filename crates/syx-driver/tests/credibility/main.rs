@@ -42,6 +42,7 @@ mod c3ah_mir_not_stack_floor_contract;
 mod c3ai_mir_neg_stack_floor_contract;
 mod c3aj_mir_bitnot_stack_floor_contract;
 mod c3ak_mir_numeric_cast_stack_floor_contract;
+mod c3al_mir_make_closure_stack_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;
