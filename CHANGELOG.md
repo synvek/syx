@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR MirBlock.successors uniqueness floor → MIR028 (empty OK; ≠ succ==term) (C-3ab; ≠ C-3 `[x]`)
 - feat: MIR module_names empty-string floor → MIR027 (empty table OK; ≠ MIR008/Call(ModuleId)) (C-3aa; ≠ C-3 `[x]`)
 - feat: MIR non-empty block-instruction floor → MIR026 (empty blocks OK; closes MIR002 empty-block hole) (C-3z; ≠ C-3 `[x]`)
 - feat: MIR non-empty function-name floor → MIR025 (empty module OK; ≠ source_name) (C-3y; ≠ C-3 `[x]`)

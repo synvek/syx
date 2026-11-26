@@ -803,6 +803,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_block_instr_floor_functions(best_by_name.values().copied())?;
         // C-3aa: non-empty module_names entries (MIR027) after block-instr.
         syx_mir::verify_mir_module_names_floor(mir)?;
+        // C-3ab: unique MirBlock.successors (MIR028) after module-names.
+        syx_mir::verify_mir_succ_unique_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

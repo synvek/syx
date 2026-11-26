@@ -688,6 +688,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_block_instr_floor(&mir)?;
     // C-3aa: non-empty module_names entries (MIR027) after block-instr.
     syx_mir::verify_mir_module_names_floor(&mir)?;
+    // C-3ab: unique MirBlock.successors (MIR028) after module-names.
+    syx_mir::verify_mir_succ_unique_floor(&mir)?;
     Ok(mir)
 }
 
