@@ -714,6 +714,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_bitand_stack_floor(&mir)?;
     // C-3an: BitOr stack-height floor (MIR040) after bitand-stack.
     syx_mir::verify_mir_bitor_stack_floor(&mir)?;
+    // C-3ao: BitXor stack-height floor (MIR041) after bitor-stack.
+    syx_mir::verify_mir_bitxor_stack_floor(&mir)?;
     Ok(mir)
 }
 

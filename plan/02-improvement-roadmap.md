@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-26 · **C-3an BitOr 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…an）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-26 · **C-3ao BitXor 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…ao）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -142,6 +142,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3al** | `[x]` | 薄 MakeClosure 栈：`verify_mir_make_closure_stack_floor` → **MIR038**（pilot∪MakeClosure；Δ=(cap,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / MIR016 名 / BitAnd）；挂钩 numeric-cast 之后；census [`c-3al-mir-make-closure-stack-floor-census`](../docs/census/c-3al-mir-make-closure-stack-floor-census.md) |
 | **C-3am** | `[x]` | 薄 BitAnd 栈：`verify_mir_bitand_stack_floor` → **MIR039**（pilot∪BitAnd；Δ=(2,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / BitOr·Xor·Shl·Shr）；挂钩 make-closure 之后；census [`c-3am-mir-bitand-stack-floor-census`](../docs/census/c-3am-mir-bitand-stack-floor-census.md) |
 | **C-3an** | `[x]` | 薄 BitOr 栈：`verify_mir_bitor_stack_floor` → **MIR040**（pilot∪BitOr；Δ=(2,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / BitXor·Shl·Shr）；挂钩 bitand-stack 之后；census [`c-3an-mir-bitor-stack-floor-census`](../docs/census/c-3an-mir-bitor-stack-floor-census.md) |
+| **C-3ao** | `[x]` | 薄 BitXor 栈：`verify_mir_bitxor_stack_floor` → **MIR041**（pilot∪BitXor；Δ=(2,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / Shl·Shr）；挂钩 bitor-stack 之后；census [`c-3ao-mir-bitxor-stack-floor-census`](../docs/census/c-3ao-mir-bitxor-stack-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -176,6 +177,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3al）：** 已证高度下 `MakeClosure(_, N)` 且 `height < N` → **MIR038**；cap=0 / 合法 / 无 MakeClosure / abandon 不破；硬 KPI 不破；**C-3al `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 **验收（C-3am）：** 已证高度下 `BitAnd` 且 `height < 2` → **MIR039**；合法双值 / 无 BitAnd / abandon 不破；硬 KPI 不破；**C-3am `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 **验收（C-3an）：** 已证高度下 `BitOr` 且 `height < 2` → **MIR040**；合法双值 / 无 BitOr / abandon 不破；硬 KPI 不破；**C-3an `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3ao）：** 已证高度下 `BitXor` 且 `height < 2` → **MIR041**；合法双值 / 无 BitXor / abandon 不破；硬 KPI 不破；**C-3ao `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
