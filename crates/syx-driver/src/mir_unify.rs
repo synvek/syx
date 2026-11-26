@@ -694,6 +694,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_aot_export_unique_floor(&mir)?;
     // C-3ad: non-empty local_types ban empty slots (MIR030) after aot-export-unique.
     syx_mir::verify_mir_local_types_empty_floor(&mir)?;
+    // C-3ae: non-empty local_names ban empty slots (MIR031) after local-types-empty.
+    syx_mir::verify_mir_local_names_empty_floor(&mir)?;
     Ok(mir)
 }
 

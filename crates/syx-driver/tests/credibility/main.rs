@@ -35,6 +35,7 @@ mod c3aa_mir_module_names_floor_contract;
 mod c3ab_mir_succ_unique_floor_contract;
 mod c3ac_mir_aot_export_unique_floor_contract;
 mod c3ad_mir_local_types_empty_floor_contract;
+mod c3ae_mir_local_names_empty_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;

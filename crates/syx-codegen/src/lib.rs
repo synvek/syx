@@ -809,6 +809,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_aot_export_unique_floor(mir)?;
         // C-3ad: non-empty local_types ban empty slots (MIR030) after aot-export-unique.
         syx_mir::verify_mir_local_types_empty_floor_functions(best_by_name.values().copied())?;
+        // C-3ae: non-empty local_names ban empty slots (MIR031) after local-types-empty.
+        syx_mir::verify_mir_local_names_empty_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
