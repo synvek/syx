@@ -706,6 +706,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_neg_stack_floor(&mir)?;
     // C-3aj: BitNot stack-height floor (MIR036) after neg-stack.
     syx_mir::verify_mir_bitnot_stack_floor(&mir)?;
+    // C-3ak: NumericCast stack-height floor (MIR037) after bitnot-stack.
+    syx_mir::verify_mir_numeric_cast_stack_floor(&mir)?;
     Ok(mir)
 }
 

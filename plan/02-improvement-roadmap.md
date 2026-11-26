@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-26 · **C-3aj BitNot 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…aj）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-26 · **C-3ak NumericCast 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…ak）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -138,6 +138,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3ah** | `[x]` | 薄 Not 栈：`verify_mir_not_stack_floor` → **MIR034**（pilot∪Not；仅已证空栈 Not；≠ 改 pilot / 扩 MIR004 / Neg·MakeClosure）；挂钩 tostr-stack 之后；census [`c-3ah-mir-not-stack-floor-census`](../docs/census/c-3ah-mir-not-stack-floor-census.md) |
 | **C-3ai** | `[x]` | 薄 Neg 栈：`verify_mir_neg_stack_floor` → **MIR035**（pilot∪Neg；仅已证空栈 Neg；≠ 改 pilot / 扩 MIR004 / BitNot·MakeClosure）；挂钩 not-stack 之后；census [`c-3ai-mir-neg-stack-floor-census`](../docs/census/c-3ai-mir-neg-stack-floor-census.md) |
 | **C-3aj** | `[x]` | 薄 BitNot 栈：`verify_mir_bitnot_stack_floor` → **MIR036**（pilot∪BitNot；仅已证空栈 BitNot；≠ 改 pilot / 扩 MIR004 / NumericCast·MakeClosure）；挂钩 neg-stack 之后；census [`c-3aj-mir-bitnot-stack-floor-census`](../docs/census/c-3aj-mir-bitnot-stack-floor-census.md) |
+| **C-3ak** | `[x]` | 薄 NumericCast 栈：`verify_mir_numeric_cast_stack_floor` → **MIR037**（pilot∪NumericCast；仅已证空栈 NumericCast；≠ 改 pilot / 扩 MIR004 / MakeClosure）；挂钩 bitnot-stack 之后；census [`c-3ak-mir-numeric-cast-stack-floor-census`](../docs/census/c-3ak-mir-numeric-cast-stack-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -168,6 +169,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3ah）：** 已证空栈 `Not` → **MIR034**；合法 Not / 无 Not / abandon 不破；硬 KPI 不破；**C-3ah `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-3ai）：** 已证空栈 `Neg` → **MIR035**；合法 Neg / 无 Neg / abandon 不破；硬 KPI 不破；**C-3ai `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 **验收（C-3aj）：** 已证空栈 `BitNot` → **MIR036**；合法 BitNot / 无 BitNot / abandon 不破；硬 KPI 不破；**C-3aj `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3ak）：** 已证空栈 `NumericCast` → **MIR037**；合法 NumericCast / 无 NumericCast / abandon 不破；硬 KPI 不破；**C-3ak `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
