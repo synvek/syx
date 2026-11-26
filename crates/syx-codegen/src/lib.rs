@@ -837,6 +837,7 @@ impl CodeGenerator {
         syx_mir::verify_mir_shr_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_mod_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_eq_stack_floor_functions(best_by_name.values().copied())?;
+        syx_mir::verify_mir_ne_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

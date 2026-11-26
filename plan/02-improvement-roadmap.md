@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-26 · **C-3as Eq 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…as）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-26 · **C-3at Ne 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…at）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -147,6 +147,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3aq** | `[x]` | 薄 Shr 栈：`verify_mir_shr_stack_floor` → **MIR043**（pilot∪Shr；Δ=(2,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / Mod·Eq）；挂钩 shl-stack 之后；census [`c-3aq-mir-shr-stack-floor-census`](../docs/census/c-3aq-mir-shr-stack-floor-census.md) |
 | **C-3ar** | `[x]` | 薄 Mod 栈：`verify_mir_mod_stack_floor` → **MIR044**（pilot∪Mod；Δ=(2,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / Eq·比较）；挂钩 shr-stack 之后；census [`c-3ar-mir-mod-stack-floor-census`](../docs/census/c-3ar-mir-mod-stack-floor-census.md) |
 | **C-3as** | `[x]` | 薄 Eq 栈：`verify_mir_eq_stack_floor` → **MIR045**（pilot∪Eq；Δ=(2,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / Ne·Lt·比较）；挂钩 mod-stack 之后；census [`c-3as-mir-eq-stack-floor-census`](../docs/census/c-3as-mir-eq-stack-floor-census.md) |
+| **C-3at** | `[x]` | 薄 Ne 栈：`verify_mir_ne_stack_floor` → **MIR046**（pilot∪Ne；Δ=(2,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004 / Lt·比较）；挂钩 eq-stack 之后；census [`c-3at-mir-ne-stack-floor-census`](../docs/census/c-3at-mir-ne-stack-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -186,6 +187,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3aq）：** 已证高度下 `Shr` 且 `height < 2` → **MIR043**；合法双值 / 无 Shr / abandon 不破；硬 KPI 不破；**C-3aq `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 **验收（C-3ar）：** 已证高度下 `Mod` 且 `height < 2` → **MIR044**；合法双值 / 无 Mod / abandon 不破；硬 KPI 不破；**C-3ar `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 **验收（C-3as）：** 已证高度下 `Eq` 且 `height < 2` → **MIR045**；合法双值 / 无 Eq / abandon 不破；硬 KPI 不破；**C-3as `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3at）：** 已证高度下 `Ne` 且 `height < 2` → **MIR046**；合法双值 / 无 Ne / abandon 不破；硬 KPI 不破；**C-3at `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
