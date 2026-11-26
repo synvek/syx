@@ -64,6 +64,8 @@ mod c3bd_mir_ref_eq_stack_floor_contract;
 mod c3be_mir_ref_ne_stack_floor_contract;
 mod c3bf_mir_array_get_stack_floor_contract;
 mod c3bg_mir_object_get_stack_floor_contract;
+mod c3bh_mir_array_set_stack_floor_contract;
+mod c3bi_mir_object_set_stack_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;
