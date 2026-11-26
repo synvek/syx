@@ -702,6 +702,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_tostr_stack_floor(&mir)?;
     // C-3ah: Not stack-height floor (MIR034) after tostr-stack.
     syx_mir::verify_mir_not_stack_floor(&mir)?;
+    // C-3ai: Neg stack-height floor (MIR035) after not-stack.
+    syx_mir::verify_mir_neg_stack_floor(&mir)?;
     Ok(mir)
 }
 
