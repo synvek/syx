@@ -733,6 +733,9 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_value_eq_stack_floor(&mir)?;
     syx_mir::verify_mir_value_ne_stack_floor(&mir)?;
     syx_mir::verify_mir_ref_eq_stack_floor(&mir)?;
+    syx_mir::verify_mir_ref_ne_stack_floor(&mir)?;
+    syx_mir::verify_mir_array_get_stack_floor(&mir)?;
+    syx_mir::verify_mir_object_get_stack_floor(&mir)?;
     Ok(mir)
 }
 

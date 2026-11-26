@@ -1,4 +1,7 @@
 ### SYX 0.4.0
+- feat: MIR ObjectGet stack-height floor → MIR059 (pilot∪ObjectGet; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/ArraySet) (C-3bg; ≠ C-3 `[x]`)
+- feat: MIR ArrayGet stack-height floor → MIR058 (pilot∪ArrayGet; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/ObjectGet) (C-3bf; ≠ C-3 `[x]`)
+- feat: MIR RefNe stack-height floor → MIR057 (pilot∪RefNe; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/ArrayGet) (C-3be; ≠ C-3 `[x]`)
 - feat: MIR RefEq stack-height floor → MIR056 (pilot∪RefEq; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/RefNe) (C-3bd; ≠ C-3 `[x]`)
 - feat: MIR ValueNe stack-height floor → MIR055 (pilot∪ValueNe; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/RefEq) (C-3bc; ≠ C-3 `[x]`)
 - feat: MIR ValueEq stack-height floor → MIR054 (pilot∪ValueEq; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/ValueNe) (C-3bb; ≠ C-3 `[x]`)
