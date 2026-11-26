@@ -690,6 +690,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_module_names_floor(&mir)?;
     // C-3ab: unique MirBlock.successors (MIR028) after module-names.
     syx_mir::verify_mir_succ_unique_floor(&mir)?;
+    // C-3ac: unique aot_export_roots (MIR029) after succ-unique.
+    syx_mir::verify_mir_aot_export_unique_floor(&mir)?;
     Ok(mir)
 }
 

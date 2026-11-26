@@ -85,6 +85,8 @@ mod mir_succ_unique_floor;
 pub use mir_succ_unique_floor::{
     verify_mir_succ_unique_floor, verify_mir_succ_unique_floor_functions,
 };
+mod mir_aot_export_unique_floor;
+pub use mir_aot_export_unique_floor::verify_mir_aot_export_unique_floor;
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

@@ -805,6 +805,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_module_names_floor(mir)?;
         // C-3ab: unique MirBlock.successors (MIR028) after module-names.
         syx_mir::verify_mir_succ_unique_floor_functions(best_by_name.values().copied())?;
+        // C-3ac: unique aot_export_roots (MIR029) after succ-unique.
+        syx_mir::verify_mir_aot_export_unique_floor(mir)?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

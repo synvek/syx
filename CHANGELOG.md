@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR aot_export_roots uniqueness floor → MIR029 (empty OK; ≠ MIR019 resolve) (C-3ac; ≠ C-3 `[x]`)
 - feat: MIR MirBlock.successors uniqueness floor → MIR028 (empty OK; ≠ succ==term) (C-3ab; ≠ C-3 `[x]`)
 - feat: MIR module_names empty-string floor → MIR027 (empty table OK; ≠ MIR008/Call(ModuleId)) (C-3aa; ≠ C-3 `[x]`)
 - feat: MIR non-empty block-instruction floor → MIR026 (empty blocks OK; closes MIR002 empty-block hole) (C-3z; ≠ C-3 `[x]`)
