@@ -159,6 +159,10 @@ mod mir_lt_stack_floor;
 pub use mir_lt_stack_floor::{
     verify_mir_lt_stack_floor, verify_mir_lt_stack_floor_functions,
 };
+mod mir_le_stack_floor;
+pub use mir_le_stack_floor::{
+    verify_mir_le_stack_floor, verify_mir_le_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

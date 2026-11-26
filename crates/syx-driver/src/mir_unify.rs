@@ -724,6 +724,7 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_eq_stack_floor(&mir)?;
     syx_mir::verify_mir_ne_stack_floor(&mir)?;
     syx_mir::verify_mir_lt_stack_floor(&mir)?;
+    syx_mir::verify_mir_le_stack_floor(&mir)?;
     Ok(mir)
 }
 

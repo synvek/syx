@@ -52,6 +52,7 @@ mod c3ar_mir_mod_stack_floor_contract;
 mod c3as_mir_eq_stack_floor_contract;
 mod c3at_mir_ne_stack_floor_contract;
 mod c3au_mir_lt_stack_floor_contract;
+mod c3av_mir_le_stack_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;
