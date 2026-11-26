@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-26 · **C-3af Dup 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…af）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-26 · **C-3ag ToStr 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…ag）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -134,6 +134,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3ad** | `[x]` | 薄 local_types 空串槽：`verify_mir_local_types_empty_floor` → **MIR030**（空向量 OK；非空禁 `""`；≠ MIR018 / locals 类型语义）；挂钩 aot-export-unique 之后；census [`c-3ad-mir-local-types-empty-floor-census`](../docs/census/c-3ad-mir-local-types-empty-floor-census.md) |
 | **C-3ae** | `[x]` | 薄 local_names 空串槽：`verify_mir_local_names_empty_floor` → **MIR031**（空向量 OK；非空禁 `""`；≠ MIR018 / locals 类型语义）；挂钩 local-types-empty 之后；census [`c-3ae-mir-local-names-empty-floor-census`](../docs/census/c-3ae-mir-local-names-empty-floor-census.md) |
 | **C-3af** | `[x]` | 薄 Dup 栈：`verify_mir_dup_stack_floor` → **MIR032**（pilot∪Dup；仅已证空栈 Dup；≠ 改 pilot / 扩 MIR004 / MakeClosure·ToStr）；挂钩 local-names-empty 之后；census [`c-3af-mir-dup-stack-floor-census`](../docs/census/c-3af-mir-dup-stack-floor-census.md) |
+| **C-3ag** | `[x]` | 薄 ToStr 栈：`verify_mir_tostr_stack_floor` → **MIR033**（pilot∪ToStr；仅已证空栈 ToStr；≠ 改 pilot / 扩 MIR004 / MakeClosure）；挂钩 dup-stack 之后；census [`c-3ag-mir-tostr-stack-floor-census`](../docs/census/c-3ag-mir-tostr-stack-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -159,7 +160,8 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3ac）：** `aot_export_roots` 含重复名 → **MIR029**；空表 / 互异不破；硬 KPI 不破；**C-3ac `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-3ad）：** 非空 `local_types` 含 `""` → **MIR030**；空向量 / 合法哨兵不破；硬 KPI 不破；**C-3ad `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-3ae）：** 非空 `local_names` 含 `""` → **MIR031**；空向量 / 合法名不破；硬 KPI 不破；**C-3ae `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
-**验收（C-3af）：** 已证空栈 `Dup` → **MIR032**；合法 Dup / 无 Dup / abandon 不破；硬 KPI 不破；**C-3af `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3af）：** 已证空栈 `Dup` → **MIR032**；合法 Dup / 无 Dup / abandon 不破；硬 KPI 不破；**C-3af `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-3ag）：** 已证空栈 `ToStr` → **MIR033**；合法 ToStr / 无 ToStr / abandon 不破；硬 KPI 不破；**C-3ag `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 

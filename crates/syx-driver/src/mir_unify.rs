@@ -698,6 +698,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_local_names_empty_floor(&mir)?;
     // C-3af: Dup stack-height floor (MIR032) after local-names-empty.
     syx_mir::verify_mir_dup_stack_floor(&mir)?;
+    // C-3ag: ToStr stack-height floor (MIR033) after dup-stack.
+    syx_mir::verify_mir_tostr_stack_floor(&mir)?;
     Ok(mir)
 }
 

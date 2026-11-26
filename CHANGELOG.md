@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR ToStr stack-height floor → MIR033 (pilot∪ToStr; proven empty only; ≠ expand pilot/MIR004/MakeClosure) (C-3ag; ≠ C-3 `[x]`)
 - feat: MIR Dup stack-height floor → MIR032 (pilot∪Dup; proven empty only; ≠ expand pilot/MIR004) (C-3af; ≠ C-3 `[x]`)
 - feat: MIR local_names empty-string-slot floor → MIR031 (empty vector OK; ≠ MIR018/type semantics) (C-3ae; ≠ C-3 `[x]`)
 - feat: MIR local_types empty-string-slot floor → MIR030 (empty vector OK; ≠ MIR018/type semantics) (C-3ad; ≠ C-3 `[x]`)
