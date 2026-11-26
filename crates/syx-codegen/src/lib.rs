@@ -831,6 +831,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_bitor_stack_floor_functions(best_by_name.values().copied())?;
         // C-3ao: BitXor stack-height floor (MIR041) after bitor-stack.
         syx_mir::verify_mir_bitxor_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3ap: Shl stack-height floor (MIR042) after bitxor-stack.
+        syx_mir::verify_mir_shl_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

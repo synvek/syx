@@ -46,6 +46,7 @@ mod c3al_mir_make_closure_stack_floor_contract;
 mod c3am_mir_bitand_stack_floor_contract;
 mod c3an_mir_bitor_stack_floor_contract;
 mod c3ao_mir_bitxor_stack_floor_contract;
+mod c3ap_mir_shl_stack_floor_contract;
 mod call_args_move_contract;
 mod call_stack_args_contract;
 mod can_stack_bind_cache_contract;
