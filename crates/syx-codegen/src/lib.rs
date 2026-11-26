@@ -840,6 +840,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_ne_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_lt_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_le_stack_floor_functions(best_by_name.values().copied())?;
+        syx_mir::verify_mir_gt_stack_floor_functions(best_by_name.values().copied())?;
+        syx_mir::verify_mir_ge_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
