@@ -143,6 +143,10 @@ mod mir_shr_stack_floor;
 pub use mir_shr_stack_floor::{
     verify_mir_shr_stack_floor, verify_mir_shr_stack_floor_functions,
 };
+mod mir_mod_stack_floor;
+pub use mir_mod_stack_floor::{
+    verify_mir_mod_stack_floor, verify_mir_mod_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

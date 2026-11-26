@@ -720,6 +720,7 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_shl_stack_floor(&mir)?;
     // C-3aq: Shr stack-height floor (MIR043) after shl-stack.
     syx_mir::verify_mir_shr_stack_floor(&mir)?;
+    syx_mir::verify_mir_mod_stack_floor(&mir)?;
     Ok(mir)
 }
 
