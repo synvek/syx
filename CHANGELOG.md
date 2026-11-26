@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR Dup stack-height floor → MIR032 (pilot∪Dup; proven empty only; ≠ expand pilot/MIR004) (C-3af; ≠ C-3 `[x]`)
 - feat: MIR local_names empty-string-slot floor → MIR031 (empty vector OK; ≠ MIR018/type semantics) (C-3ae; ≠ C-3 `[x]`)
 - feat: MIR local_types empty-string-slot floor → MIR030 (empty vector OK; ≠ MIR018/type semantics) (C-3ad; ≠ C-3 `[x]`)
 - feat: MIR aot_export_roots uniqueness floor → MIR029 (empty OK; ≠ MIR019 resolve) (C-3ac; ≠ C-3 `[x]`)
