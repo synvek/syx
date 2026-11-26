@@ -700,6 +700,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_dup_stack_floor(&mir)?;
     // C-3ag: ToStr stack-height floor (MIR033) after dup-stack.
     syx_mir::verify_mir_tostr_stack_floor(&mir)?;
+    // C-3ah: Not stack-height floor (MIR034) after tostr-stack.
+    syx_mir::verify_mir_not_stack_floor(&mir)?;
     Ok(mir)
 }
 

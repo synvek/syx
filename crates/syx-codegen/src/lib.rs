@@ -815,6 +815,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_dup_stack_floor_functions(best_by_name.values().copied())?;
         // C-3ag: ToStr stack-height floor (MIR033) after dup-stack.
         syx_mir::verify_mir_tostr_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3ah: Not stack-height floor (MIR034) after tostr-stack.
+        syx_mir::verify_mir_not_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
