@@ -127,6 +127,10 @@ mod mir_bitand_stack_floor;
 pub use mir_bitand_stack_floor::{
     verify_mir_bitand_stack_floor, verify_mir_bitand_stack_floor_functions,
 };
+mod mir_bitor_stack_floor;
+pub use mir_bitor_stack_floor::{
+    verify_mir_bitor_stack_floor, verify_mir_bitor_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
