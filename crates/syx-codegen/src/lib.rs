@@ -819,6 +819,8 @@ impl CodeGenerator {
         syx_mir::verify_mir_not_stack_floor_functions(best_by_name.values().copied())?;
         // C-3ai: Neg stack-height floor (MIR035) after not-stack.
         syx_mir::verify_mir_neg_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3aj: BitNot stack-height floor (MIR036) after neg-stack.
+        syx_mir::verify_mir_bitnot_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

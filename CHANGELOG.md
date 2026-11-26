@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR BitNot stack-height floor → MIR036 (pilot∪BitNot; proven empty only; ≠ expand pilot/MIR004/NumericCast/MakeClosure) (C-3aj; ≠ C-3 `[x]`)
 - feat: MIR Neg stack-height floor → MIR035 (pilot∪Neg; proven empty only; ≠ expand pilot/MIR004/BitNot/MakeClosure) (C-3ai; ≠ C-3 `[x]`)
 - feat: MIR Not stack-height floor → MIR034 (pilot∪Not; proven empty only; ≠ expand pilot/MIR004/MakeClosure) (C-3ah; ≠ C-3 `[x]`)
 - feat: MIR ToStr stack-height floor → MIR033 (pilot∪ToStr; proven empty only; ≠ expand pilot/MIR004/MakeClosure) (C-3ag; ≠ C-3 `[x]`)
