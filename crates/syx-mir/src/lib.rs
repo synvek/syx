@@ -183,6 +183,18 @@ mod mir_concat_str_stack_floor;
 pub use mir_concat_str_stack_floor::{
     verify_mir_concat_str_stack_floor, verify_mir_concat_str_stack_floor_functions,
 };
+mod mir_value_eq_stack_floor;
+pub use mir_value_eq_stack_floor::{
+    verify_mir_value_eq_stack_floor, verify_mir_value_eq_stack_floor_functions,
+};
+mod mir_value_ne_stack_floor;
+pub use mir_value_ne_stack_floor::{
+    verify_mir_value_ne_stack_floor, verify_mir_value_ne_stack_floor_functions,
+};
+mod mir_ref_eq_stack_floor;
+pub use mir_ref_eq_stack_floor::{
+    verify_mir_ref_eq_stack_floor, verify_mir_ref_eq_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

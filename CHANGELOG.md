@@ -1,4 +1,7 @@
 ### SYX 0.4.0
+- feat: MIR RefEq stack-height floor → MIR056 (pilot∪RefEq; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/RefNe) (C-3bd; ≠ C-3 `[x]`)
+- feat: MIR ValueNe stack-height floor → MIR055 (pilot∪ValueNe; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/RefEq) (C-3bc; ≠ C-3 `[x]`)
+- feat: MIR ValueEq stack-height floor → MIR054 (pilot∪ValueEq; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/ValueNe) (C-3bb; ≠ C-3 `[x]`)
 - feat: MIR ConcatStr stack-height floor → MIR053 (pilot∪ConcatStr; Δ=(2,1); proven height only; ≠ expand pilot/MIR004) (C-3ba; ≠ C-3 `[x]`)
 - feat: MIR Or stack-height floor → MIR052 (pilot∪Or; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/ConcatStr) (C-3az; ≠ C-3 `[x]`)
 - feat: MIR And stack-height floor → MIR051 (pilot∪And; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/Or) (C-3ay; ≠ C-3 `[x]`)
