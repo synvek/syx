@@ -692,6 +692,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_succ_unique_floor(&mir)?;
     // C-3ac: unique aot_export_roots (MIR029) after succ-unique.
     syx_mir::verify_mir_aot_export_unique_floor(&mir)?;
+    // C-3ad: non-empty local_types ban empty slots (MIR030) after aot-export-unique.
+    syx_mir::verify_mir_local_types_empty_floor(&mir)?;
     Ok(mir)
 }
 
