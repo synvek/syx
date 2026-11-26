@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MIR Lt stack-height floor → MIR047 (pilot∪Lt; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/Le/compare) (C-3au; ≠ C-3 `[x]`)
 - feat: MIR Ne stack-height floor → MIR046 (pilot∪Ne; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/Lt/compare) (C-3at; ≠ C-3 `[x]`)
 - feat: MIR Eq stack-height floor → MIR045 (pilot∪Eq; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/Ne/Lt/compare) (C-3as; ≠ C-3 `[x]`)
 - feat: MIR Mod stack-height floor → MIR044 (pilot∪Mod; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/Eq/compare) (C-3ar; ≠ C-3 `[x]`)
