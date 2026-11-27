@@ -52,7 +52,7 @@ pub use protocols::{
     type_conforms, ProtocolId,
 };
 pub use registry::{
-    host_fn_id_by_name, host_fn_index, host_fn_index_by_name, host_fn_name_for_index,
+    host_fn_arity, host_fn_id_by_name, host_fn_index, host_fn_index_by_name, host_fn_name_for_index,
     host_fn_return_type, is_instance_property_member, lookup_array_method, lookup_dict_method,
     lookup_float32_math_host, lookup_float64_math_host, lookup_http_response_method,
     lookup_set_method, lookup_sql_row_method, lookup_string_method, lookup_type_method,

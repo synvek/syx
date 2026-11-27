@@ -874,6 +874,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_call_closure_stack_floor(&mir)?;
     // C-3cd: ConstFnIndex name resolve floor (MIR080) after CallClosure stack; R-33.
     syx_mir::verify_mir_const_fn_index_floor_functions(&fn_index, mir.functions.iter())?;
+    // C-3ce: CallHost pilot arity stack floor (MIR081) after ConstFnIndex floor.
+    syx_mir::verify_mir_call_host_arity_floor(&mir)?;
     Ok(mir)
 }
 

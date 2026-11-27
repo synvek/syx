@@ -292,6 +292,10 @@ pub use mir_const_fn_index_floor::{
     demote_unresolved_const_fn_index, verify_mir_const_fn_index_floor,
     verify_mir_const_fn_index_floor_functions,
 };
+mod mir_call_host_arity_floor;
+pub use mir_call_host_arity_floor::{
+    verify_mir_call_host_arity_floor, verify_mir_call_host_arity_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

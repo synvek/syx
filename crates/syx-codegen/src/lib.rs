@@ -880,6 +880,8 @@ impl CodeGenerator {
             &mir_fn_index,
             best_by_name.values().copied(),
         )?;
+        // C-3ce: CallHost pilot arity stack floor (MIR081) after ConstFnIndex floor.
+        syx_mir::verify_mir_call_host_arity_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

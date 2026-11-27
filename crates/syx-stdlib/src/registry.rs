@@ -3994,6 +3994,41 @@ pub fn host_fn_index(id: HostFnId) -> u32 {
     HostFnId::all().iter().position(|h| *h == id).unwrap_or(0) as u32
 }
 
+/// C-3ce pilot: known HostFn stack arity `(pop, push)` for absolute CallHost indices.
+///
+/// Returns `Some((pop, push))` only for a **pilot subset** whose pops match VM host
+/// implementations (`hosts.rs` / `stdlib_core_hosts.rs`). Unknown / non-pilot → `None`
+/// (floor abandon; ≠ red). Not a full HostFn arity GA / trim-remap SSOT.
+pub fn host_fn_arity(idx: u32) -> Option<(u32, u32)> {
+    let id = HostFnId::all().get(idx as usize).copied()?;
+    Some(match id {
+        // Fmt* — pop1 push1 (stdlib_core_hosts)
+        HostFnId::FmtPrint | HostFnId::FmtPrintLine | HostFnId::FmtDebug => (1, 1),
+        // Unary f64 math — pop1 push1
+        HostFnId::MathFloatSin
+        | HostFnId::MathFloatCos
+        | HostFnId::MathFloatSqrt
+        | HostFnId::MathFloatFloor
+        | HostFnId::MathFloatCeil
+        | HostFnId::MathFloatRound
+        | HostFnId::MathFloatLog
+        | HostFnId::MathFloatExp
+        | HostFnId::MathFloatTrunc
+        | HostFnId::MathFloatAbs => (1, 1),
+        // Binary f64 — pop2 push1
+        HostFnId::MathFloatPow => (2, 1),
+        // File* — path-only pop1 push1
+        HostFnId::FileRead
+        | HostFnId::FileReadLines
+        | HostFnId::FileExists
+        | HostFnId::FileDelete
+        | HostFnId::FileStat => (1, 1),
+        // File* — path+content pop2 push1
+        HostFnId::FileWrite | HostFnId::FileAppend => (2, 1),
+        _ => return None,
+    })
+}
+
 pub fn host_fn_name_for_index(idx: u32) -> Option<&'static str> {
     let base = numeric_host_base_index();
     if idx < base {
