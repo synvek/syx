@@ -856,6 +856,9 @@ impl CodeGenerator {
         syx_mir::verify_mir_opaque_value_eq_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_store_global_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_arr_sorted_stack_floor_functions(best_by_name.values().copied())?;
+        syx_mir::verify_mir_call_indirect_stack_floor_functions(best_by_name.values().copied())?;
+        syx_mir::verify_mir_actor_register_stack_floor_functions(best_by_name.values().copied())?;
+        syx_mir::verify_mir_make_iterator_stack_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

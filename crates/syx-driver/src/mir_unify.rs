@@ -741,6 +741,9 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_opaque_value_eq_stack_floor(&mir)?;
     syx_mir::verify_mir_store_global_stack_floor(&mir)?;
     syx_mir::verify_mir_arr_sorted_stack_floor(&mir)?;
+    syx_mir::verify_mir_call_indirect_stack_floor(&mir)?;
+    syx_mir::verify_mir_actor_register_stack_floor(&mir)?;
+    syx_mir::verify_mir_make_iterator_stack_floor(&mir)?;
     Ok(mir)
 }
 

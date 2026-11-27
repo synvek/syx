@@ -1,4 +1,7 @@
 ### SYX 0.4.0
+- feat: MIR MakeIterator stack-height floor → MIR067 (pilot∪MakeIterator; Δ=(1,1); proven height only; ≠ expand pilot/MIR004) (C-3bo; ≠ C-3 `[x]`)
+- feat: MIR ActorRegister stack-height floor → MIR066 (pilot∪ActorRegister; Δ=(1,1); proven height only; ≠ expand pilot/MIR004) (C-3bn; ≠ C-3 `[x]`)
+- feat: MIR CallIndirect stack-height floor → MIR065 (pilot∪CallIndirect; Δ=(n+1,1); proven height only; ≠ CallIndirect full arity) (C-3bm; ≠ C-3 `[x]`)
 - feat: MIR ArrSorted stack-height floor → MIR064 (pilot∪ArrSorted; Δ=(1,1); proven height only; ≠ expand pilot/MIR004) (C-3bl; ≠ C-3 `[x]`)
 - feat: MIR StoreGlobal stack-height floor → MIR063 (pilot∪StoreGlobal; Δ=(1,0); proven height only; ≠ MIR012 slot OOB) (C-3bk; ≠ C-3 `[x]`)
 - feat: MIR OpaqueValueEq stack-height floor → MIR062 (pilot∪OpaqueValueEq; Δ=(2,1); proven height only; ≠ CallWitness semantics) (C-3bj; ≠ C-3 `[x]`)
