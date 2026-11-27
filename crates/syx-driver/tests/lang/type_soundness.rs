@@ -429,6 +429,72 @@ func main() { bump(1) }
 }
 
 #[test]
+fn c0h_untyped_member_assign_int_s004() {
+    let code = compile_fail_code(
+        r#"
+struct Cell {
+    var n: Int = 0
+}
+func put(_ x) {
+    var c = Cell()
+    c.n = x
+}
+func main() { put(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+struct Cell {
+    var n: Int = 0
+}
+func put(_ x) {
+    var c = Cell()
+    c.n = x
+}
+func main() { put(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0h_literal_member_assign_still_ok() {
+    compile_ok(
+        r#"
+struct Cell {
+    var n: Int = 0
+}
+func main() {
+    var c = Cell()
+    c.n = 1
+}
+"#,
+    );
+}
+
+#[test]
+fn c0h_any_member_assign_still_ok() {
+    compile_ok(
+        r#"
+struct Bag {
+    var a: Any = 0
+}
+func put(_ x) {
+    var b = Bag()
+    b.a = x
+}
+func main() { put(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"

@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: MemberAssign Unknown→ground sink → S004 (infer_member_type + assignable + check_unknown_to_ground_sink; soft arm retained) (C-0h; ≠ C-0a+ `[x]`)
 - feat: CompoundAssign Unknown→ground sink → S004 (reuse check_unknown_to_ground_sink; soft arm retained) (C-0g; ≠ C-0a+ `[x]`)
 - feat: MIR CallClosure stack-height floor → MIR079 (pilot∪CallClosure; Δ=(1,1); proven height only; ≠ VM (1+n,1) full arity) (C-3ca; ≠ C-3 `[x]`)
 - feat: MIR CallSuper stack-height floor → MIR078 (pilot∪CallSuper; Δ=(n,1) via callee; proven height only; ≠ _init self path / MIR016) (C-3bz; ≠ C-3 `[x]`)

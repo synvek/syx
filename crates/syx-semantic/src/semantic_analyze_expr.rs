@@ -692,9 +692,9 @@ impl SemanticAnalyzer {
                 // U-23…U-29: let-bound value paths (dataclass/tuple/enum nested) → S060.
                 self.check_member_assign_on_immutable(object, *span);
                 let obj_ty = self.analyze_expr(object)?;
-                if let Some(obj_ty) = self.expr_type(object) {
-                    self.check_actor_field_access(object, name, &obj_ty, *span);
-                    if let TypeId::Named(type_name) = &obj_ty {
+                if let Some(ref ot) = self.expr_type(object) {
+                    self.check_actor_field_access(object, name, ot, *span);
+                    if let TypeId::Named(type_name) = ot {
                         if self
                             .getter_only_properties
                             .contains(&(type_name.clone(), name.clone()))
@@ -707,8 +707,21 @@ impl SemanticAnalyzer {
                         }
                     }
                 }
-                self.analyze_expr(value)?;
-                let _ = obj_ty;
+                let expected = self.infer_member_type(&obj_ty, name);
+                if matches!(expected, TypeId::Unknown | TypeId::GenericParam(_)) {
+                    self.analyze_expr(value)?;
+                } else {
+                    let ty = self.analyze_expr_with_expected(value, Some(&expected))?;
+                    self.check_assignable_with_literal(
+                        expected.clone(),
+                        ty.clone(),
+                        name,
+                        Some(value),
+                        *span,
+                    )?;
+                    // C-0h: member-assign Unknown→ground sink (≠ close soft arm / C-0a+).
+                    self.check_unknown_to_ground_sink(&expected, &ty, value, name, *span)?;
+                }
                 Ok(TypeId::Void)
             }
             Expr::IndexAssign {
