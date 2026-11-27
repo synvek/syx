@@ -738,7 +738,34 @@ impl SemanticAnalyzer {
                 if let TypeId::Named(ref type_name) = obj_ty {
                     if self.has_subscript_set(type_name) {
                         self.analyze_expr(index)?;
-                        self.analyze_expr(value)?;
+                        if let Some(expected) = self.subscript_return_type(type_name) {
+                            if !matches!(
+                                expected,
+                                TypeId::Unknown | TypeId::GenericParam(_)
+                            ) {
+                                let found =
+                                    self.analyze_expr_with_expected(value, Some(&expected))?;
+                                self.check_assignable_with_literal(
+                                    expected.clone(),
+                                    found.clone(),
+                                    "value",
+                                    Some(value),
+                                    *span,
+                                )?;
+                                // C-0k: subscript_set Unknown→ground sink (≠ close soft arm / C-0a+).
+                                self.check_unknown_to_ground_sink(
+                                    &expected,
+                                    &found,
+                                    value,
+                                    "value",
+                                    *span,
+                                )?;
+                            } else {
+                                self.analyze_expr(value)?;
+                            }
+                        } else {
+                            self.analyze_expr(value)?;
+                        }
                         return Ok(TypeId::Void);
                     }
                 }

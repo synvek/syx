@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: extension subscript_set IndexAssign Unknown→ground sink → S004 (subscript_return_type; soft arm retained; ≠ class-body subscript / Init) (C-0k; ≠ C-0a+ `[x]`)
 - feat: user Struct/Class method arg Unknown→ground sink → S004 (mangled function_params + Member call; soft arm retained; ≠ host/extension GA) (C-0j; ≠ C-0a+ `[x]`)
 - feat: IndexAssign Unknown→ground sink → S004 (Array/Dict ground value; soft arm retained) (C-0i; ≠ C-0a+ `[x]`)
 - feat: MemberAssign Unknown→ground sink → S004 (infer_member_type + assignable + check_unknown_to_ground_sink; soft arm retained) (C-0h; ≠ C-0a+ `[x]`)

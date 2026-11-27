@@ -617,6 +617,85 @@ func main() { S().wrap(1) }
 }
 
 #[test]
+fn c0k_untyped_subscript_set_int_s004() {
+    // Desugared accessors: type_soundness helpers skip frontend subscript desugar.
+    let code = compile_fail_code(
+        r#"
+class Bag {
+}
+extension Bag {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func put(_ v) {
+    var b = Bag()
+    b[0] = v
+}
+func main() { put(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+class Bag {
+}
+extension Bag {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func put(_ v) {
+    var b = Bag()
+    b[0] = v
+}
+func main() { put(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0k_literal_subscript_set_still_ok() {
+    compile_ok(
+        r#"
+class Bag {
+}
+extension Bag {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func main() {
+    var b = Bag()
+    b[0] = 1
+}
+"#,
+    );
+}
+
+#[test]
+fn c0k_any_subscript_set_still_ok() {
+    compile_ok(
+        r#"
+class Bag {
+}
+extension Bag {
+    func __subscript_get(i: Int) -> Any { return 0 }
+    func __subscript_set(i: Int, newValue: Any) { }
+}
+func put(_ v) {
+    var b = Bag()
+    b[0] = v
+}
+func main() { put(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"
