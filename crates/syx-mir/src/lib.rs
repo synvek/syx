@@ -239,6 +239,18 @@ mod mir_make_iterator_stack_floor;
 pub use mir_make_iterator_stack_floor::{
     verify_mir_make_iterator_stack_floor, verify_mir_make_iterator_stack_floor_functions,
 };
+mod mir_task_join_stack_floor;
+pub use mir_task_join_stack_floor::{
+    verify_mir_task_join_stack_floor, verify_mir_task_join_stack_floor_functions,
+};
+mod mir_await_suspend_stack_floor;
+pub use mir_await_suspend_stack_floor::{
+    verify_mir_await_suspend_stack_floor, verify_mir_await_suspend_stack_floor_functions,
+};
+mod mir_throw_stack_floor;
+pub use mir_throw_stack_floor::{
+    verify_mir_throw_stack_floor, verify_mir_throw_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-3bm / C-3bn / C-3bo CallIndirect+ActorRegister+MakeIterator 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…bl+bm…bo）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-3bp / C-3bq / C-3br TaskJoin+AwaitSuspend+Throw 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…bo+bp…br）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -169,6 +169,9 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3bm** | `[x]` | 薄 CallIndirect 栈：`verify_mir_call_indirect_stack_floor` → **MIR065**（pilot∪CallIndirect；Δ=(n+1,1)；仅已证高度不足；≠ 完整 arity / 改 pilot / 扩 MIR004）；挂钩 arr-sorted 之后；census [`c-3bm-mir-call-indirect-stack-floor-census`](../docs/census/c-3bm-mir-call-indirect-stack-floor-census.md) |
 | **C-3bn** | `[x]` | 薄 ActorRegister 栈：`verify_mir_actor_register_stack_floor` → **MIR066**（pilot∪ActorRegister；Δ=(1,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004）；挂钩 call-indirect 之后；census [`c-3bn-mir-actor-register-stack-floor-census`](../docs/census/c-3bn-mir-actor-register-stack-floor-census.md) |
 | **C-3bo** | `[x]` | 薄 MakeIterator 栈：`verify_mir_make_iterator_stack_floor` → **MIR067**（pilot∪MakeIterator；Δ=(1,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004）；挂钩 actor-register 之后；census [`c-3bo-mir-make-iterator-stack-floor-census`](../docs/census/c-3bo-mir-make-iterator-stack-floor-census.md) |
+| **C-3bp** | `[x]` | 薄 TaskJoin 栈：`verify_mir_task_join_stack_floor` → **MIR068**（pilot∪TaskJoin；Δ=(1,1)；仅已证高度不足；≠ 改 pilot / 扩 MIR004）；挂钩 make-iterator 之后；census [`c-3bp-mir-task-join-stack-floor-census`](../docs/census/c-3bp-mir-task-join-stack-floor-census.md) |
+| **C-3bq** | `[x]` | 薄 AwaitSuspend 栈：`verify_mir_await_suspend_stack_floor` → **MIR069**（pilot∪AwaitSuspend；Δ=(1,1)；仅已证高度不足；≠ MIR015）；挂钩 task-join 之后；census [`c-3bq-mir-await-suspend-stack-floor-census`](../docs/census/c-3bq-mir-await-suspend-stack-floor-census.md) |
+| **C-3br** | `[x]` | 薄 Throw 栈：`verify_mir_throw_stack_floor` → **MIR070**（pilot∪Throw；Δ=(1,0)；仅已证高度不足；≠ MIR009 / 完整 exception）；挂钩 await-suspend 之后；census [`c-3br-mir-throw-stack-floor-census`](../docs/census/c-3br-mir-throw-stack-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -230,6 +233,9 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3bm）：** 已证高度下 `CallIndirect(n)` 且 `height < n+1` → **MIR065**；合法流 / 无 CallIndirect / abandon 不破；硬 KPI 不破；**C-3bm `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bn**。
 **验收（C-3bn）：** 已证空栈 `ActorRegister` → **MIR066**；合法流 / 无 ActorRegister / abandon 不破；硬 KPI 不破；**C-3bn `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bo**。
 **验收（C-3bo）：** 已证空栈 `MakeIterator` → **MIR067**；合法流 / 无 MakeIterator / abandon 不破；硬 KPI 不破；**C-3bo `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3bp）：** 已证空栈 `TaskJoin` → **MIR068**；合法流 / 无 TaskJoin / abandon 不破；硬 KPI 不破；**C-3bp `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bq**。
+**验收（C-3bq）：** 已证空栈 `AwaitSuspend` → **MIR069**；合法流 / 无 AwaitSuspend / abandon 不破；硬 KPI 不破；**C-3bq `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3br**。
+**验收（C-3br）：** 已证空栈 `Throw` → **MIR070**；合法流 / 无 Throw / abandon 不破；硬 KPI 不破；**C-3br `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
