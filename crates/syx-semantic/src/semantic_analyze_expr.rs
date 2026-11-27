@@ -669,10 +669,17 @@ impl SemanticAnalyzer {
                 };
                 let expected = self.assign_expected_type(&sym_ty);
                 if matches!(expected, TypeId::Numeric(_)) {
-                    let _ = self.promote_numeric(expected.clone(), ty);
+                    let _ = self.promote_numeric(expected.clone(), ty.clone());
                 } else {
-                    self.check_assignable(expected, ty, name, expr_span(value))?;
+                    self.check_assignable(
+                        expected.clone(),
+                        ty.clone(),
+                        name,
+                        expr_span(value),
+                    )?;
                 }
+                // C-0g: compound-assign Unknown→ground sink (≠ close soft arm / C-0a+).
+                self.check_unknown_to_ground_sink(&expected, &ty, value, name, *span)?;
                 Ok(TypeId::Void)
             }
             Expr::MemberAssign {

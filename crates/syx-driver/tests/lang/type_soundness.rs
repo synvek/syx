@@ -375,6 +375,60 @@ func main() { take(1) }
 }
 
 #[test]
+fn c0g_untyped_compound_assign_int_s004() {
+    let code = compile_fail_code(
+        r#"
+func bump(_ x) {
+    var n: Int = 0
+    n += x
+}
+func main() { bump(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+func bump(_ x) {
+    var n: Int = 0
+    n += x
+}
+func main() { bump(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0g_literal_compound_still_ok() {
+    compile_ok(
+        r#"
+func main() {
+    var n: Int = 0
+    n += 1
+}
+"#,
+    );
+}
+
+#[test]
+fn c0g_untyped_compound_assign_any_still_ok() {
+    compile_ok(
+        r#"
+func bump(_ x) {
+    var a: Any = 0
+    a += x
+}
+func main() { bump(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"
