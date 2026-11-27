@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-3ce `[x]`**（CallHost pilot arity **MIR081**）· C-3cd/C-3cc/C-0v4 `[x]`；C-0v/C-0a+ `[x]`；C-9g2 `[x]`；**C-3 仍 `[~]`**；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = 明示 park C-0e**，或 DefId 薄加深 / 扩 HostFn arity pilot（不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-3cf `[x]`**（Def↔Fn 一致性 **MIR082**）· C-3ce/C-3cd/C-3cc/C-0v4 `[x]`；C-0v/C-0a+ `[x]`；C-9g2 `[x]`；**C-3 仍 `[~]`**；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = 明示 park C-0e**，或扩 HostFn arity pilot / DefId populate 加深（不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -225,6 +225,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3cc** | `[x]` | stdlib MIR 传递 Call 链接：`link_stdlib_mir_call_closure` / `ensure_stdlib_mir_call_closure`（prelude `compile_to_program` + `mir_unify` merge）；**不**放宽 C-3p；Float_bitWidth→Float32_bitWidth；`s004_does_not_leak` 冷绿；**C-3 仍 `[~]`** |
 | **C-3cd** | `[x]` | 薄 ConstFnIndex 名解析：`verify_mir_const_fn_index_floor` → **MIR080**（缺名先 `demote_unresolved_const_fn_index`→`ConstI32(-1)`；≠ CallIndirect arity / HostFn arity）；挂钩 CallClosure 栈之后；census [`c-3cd-mir-const-fn-index-floor-census`](harness/census-docs/c-3cd-mir-const-fn-index-floor-census.md)；**C-3 仍 `[~]`** |
 | **C-3ce** | `[x]` | 薄 CallHost arity 栈：`host_fn_arity` pilot + `verify_mir_call_host_arity_floor` → **MIR081**（已知 `(pop,push)` 已证 underflow；未知 abandon；≠ 全量 HostFn arity / 改 C-3m）；挂钩 ConstFnIndex 之后；census [`c-3ce-mir-call-host-arity-floor-census`](harness/census-docs/c-3ce-mir-call-host-arity-floor-census.md)；**C-3 仍 `[~]`** |
+| **C-3cf** | `[x]` | 薄 Def↔Fn 一致性：`verify_mir_def_fn_consistency_floor` → **MIR082**（owned def 与 `MirFnIndex` 同名同槽；≠ Call(ModuleId) / 完整 DefId / 多模块必填 owner）；挂钩 CallHost arity 之后；census [`c-3cf-mir-def-fn-consistency-census`](harness/census-docs/c-3cf-mir-def-fn-consistency-census.md)；**C-3 仍 `[~]`** |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -300,7 +301,8 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3ca）：** 已证空栈 `CallClosure` → **MIR079**；合法流 / 无 CallClosure / abandon 不破；硬 KPI 不破；**C-3ca `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。
 **验收（C-3cc）：** 冷 unified / prelude MIR 下 `Float_bitWidth`⇒`Float32_bitWidth` 在 index；`s004_does_not_leak` 绿；C-3p 地板不放宽；**C-3cc `[x]`**；**C-3 仍 `[~]`**。
 **验收（C-3cd）：** 未解析 `ConstFnIndex` → **MIR080**（或 demote 后绿）；合法名 / 无此类 op 不破；codegen 不再静默 `-1`；C-3p/`s004` 不破；硬 KPI 不破；**C-3cd `[x]`**；**C-3 仍 `[~]`**。  
-**验收（C-3ce）：** 已知 pilot arity 的空栈 `CallHost` → **MIR081**；合法高度 / 无 CallHost / 未知 arity abandon 不破；C-3m/C-3cd/`s004` 不破；硬 KPI 不破；**C-3ce `[x]`**；**C-3 仍 `[~]`**。默认下一 → **明示 park C-0e**，或 DefId 薄加深 / 扩 HostFn arity pilot（**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-3ce）：** 已知 pilot arity 的空栈 `CallHost` → **MIR081**；合法高度 / 无 CallHost / 未知 arity abandon 不破；C-3m/C-3cd/`s004` 不破；硬 KPI 不破；**C-3ce `[x]`**；**C-3 仍 `[~]`**。  
+**验收（C-3cf）：** owned def 与陈旧/错槽 `MirFnIndex` → **MIR082**；合法 owned+匹配 / 全 None / 空不破；C-3j/C-3ce/C-3cd/`s004` 不破；硬 KPI 不破；**C-3cf `[x]`**；**C-3 仍 `[~]`**。默认下一 → **明示 park C-0e**，或扩 HostFn arity pilot / DefId populate 加深（**不**宣称 C-3/C-5 `[x]`）。  
 **C-3cb（Wasm W001 If underflow）：** 2026-11-27 复测 `fixtures/test_guard.sy` `syx build --wasm` **绿** → **不插队**；路径敏感 JumpIfNil / emit tracker 仍 park（≠ MIR074 空栈）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
@@ -399,7 +401,7 @@ formatter CST lossless；Ch15 隐式 `super.init` MD 诚实；语言书与 parse
 | **C-9f** | `[x]` | 公开 `docs/census` 窗账本迁私有；留能力摘要/stub |
 | **C-9g2** | `[x]` | 清跨轴阶段回灌的 `docs/census/c-8a…f`；lang `c8c`/`c8e` 改 `tests/lang/fixtures/`；公开 census 仅 README |
 
-**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f + **g2** 真收口）；产品默认下一现 = **明示 park C-0e**，或 DefId 薄加深 / 扩 HostFn arity pilot（C-3ce 后）。
+**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f + **g2** 真收口）；产品默认下一现 = **明示 park C-0e**，或扩 HostFn arity pilot / DefId populate 加深（C-3cf 后）。
 
 ## 3. 显式 park（非默认下一）
 

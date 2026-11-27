@@ -882,6 +882,12 @@ impl CodeGenerator {
         )?;
         // C-3ce: CallHost pilot arity stack floor (MIR081) after ConstFnIndex floor.
         syx_mir::verify_mir_call_host_arity_floor_functions(best_by_name.values().copied())?;
+        // C-3cf: Def↔Fn consistency floor (MIR082) after CallHost arity; same MirFnIndex.
+        syx_mir::verify_mir_def_fn_consistency_floor_functions(
+            &mir_fn_index,
+            mir.module_names.len(),
+            best_by_name.values().copied(),
+        )?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

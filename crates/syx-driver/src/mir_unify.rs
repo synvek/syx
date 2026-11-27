@@ -876,6 +876,12 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_const_fn_index_floor_functions(&fn_index, mir.functions.iter())?;
     // C-3ce: CallHost pilot arity stack floor (MIR081) after ConstFnIndex floor.
     syx_mir::verify_mir_call_host_arity_floor(&mir)?;
+    // C-3cf: Def↔Fn consistency floor (MIR082) after CallHost arity; same MirFnIndex.
+    syx_mir::verify_mir_def_fn_consistency_floor_functions(
+        &fn_index,
+        mir.module_names.len(),
+        mir.functions.iter(),
+    )?;
     Ok(mir)
 }
 
