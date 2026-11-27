@@ -874,6 +874,52 @@ func main() { wrap(1) }
 }
 
 #[test]
+fn c0o_untyped_dataclass_init_arg_int_s004() {
+    let code = compile_fail_code(
+        r#"
+data class P(x: Int)
+func wrap(_ v) { P(v) }
+func main() { wrap(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+data class P(x: Int)
+func wrap(_ v) { P(v) }
+func main() { wrap(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0o_literal_dataclass_init_arg_still_ok() {
+    compile_ok(
+        r#"
+data class P(x: Int)
+func main() { P(1) }
+"#,
+    );
+}
+
+#[test]
+fn c0o_any_dataclass_init_arg_still_ok() {
+    compile_ok(
+        r#"
+data class P(x: Any)
+func wrap(_ v) { P(v) }
+func main() { wrap(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"

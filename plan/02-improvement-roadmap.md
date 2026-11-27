@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-0n Actor Init 实参 Unknown sink `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（C-0a+ prep / C-0e / Module.Type tip；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-0o DataClass memberwise Init sink `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（C-0a+ prep / C-0e / IndexAssign index tip / Module.Type prep；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -55,6 +55,7 @@
 | **C-0l** | `[x]` | Init：`{Type}_init` `function_params` + 构造调用 Unknown→地面形参 → **S004**（复用 C-0f 循环；**未**关软臂；≠ Actor / Module.Type）；census [`c-0l-init-arg-unknown-sink-census`](../docs/census/c-0l-init-arg-unknown-sink-census.md) |
 | **C-0m** | `[x]` | Class/Struct 体内 `__subscript_*` 登记 → 复用 C-0k IndexAssign sink → **S004**（**未**关软臂；≠ extension-only）；census [`c-0m-class-body-subscript-unknown-sink-census`](../docs/census/c-0m-class-body-subscript-unknown-sink-census.md) |
 | **C-0n** | `[x]` | Actor Init：`{Actor}_init` `function_params` + 构造调用 Unknown→地面形参 → **S004**（复用 C-0f；**未**关软臂；≠ Module.Type）；census [`c-0n-actor-init-arg-unknown-sink-census`](../docs/census/c-0n-actor-init-arg-unknown-sink-census.md) |
+| **C-0o** | `[x]` | DataClass memberwise：`{Type}_init` labels（`Omitted`）+ `function_params` → 复用 Call `dataclass_names` sink → **S004**（collect-only；**未**关软臂；≠ Module.Type / Struct Same）；census [`c-0o-dataclass-memberwise-unknown-sink-census`](../docs/census/c-0o-dataclass-memberwise-unknown-sink-census.md) |
 | **C-0a+** | `[-]` park | `ErrorType` / `InferenceVar` 三分；关 `is_compatible(_, Unknown)` 软臂 |
 | **C-0e** | `[-]` park | integer narrowing / 书 S008 对齐 |
 
@@ -68,6 +69,7 @@
 **验收（C-0l）：** `struct S { init(_ n: Int) {} }` + `wrap(_ x) { S(x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0l `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / class-body subscript；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-0m）：** 类体内 desugared `__subscript_*` → Int + `b[0] = v` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0m `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / Actor·Module.Type ctor；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-0n）：** `actor Counter { init(_ n: Int) {} }` + `wrap(_ x) { Counter(x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0n `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / Module.Type tip；**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-0o）：** `data class P(x: Int)` + `wrap(_ v) { P(v) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0o `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / IndexAssign index tip / Module.Type prep；**不**宣称 C-3/C-5 `[x]`）。  
 **不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG。
 
 ### C-1 · ManagedHeap 安全默认（P0） — `[x]` 默认降级+identity+immutable+叙事

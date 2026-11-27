@@ -715,7 +715,22 @@ impl SemanticAnalyzer {
                         .iter()
                         .map(|(f, ty)| (f.clone(), type_expr_to_id(ty)))
                         .collect();
-                    self.dataclass_fields.insert(name.clone(), field_types);
+                    self.dataclass_fields
+                        .insert(name.clone(), field_types.clone());
+                    // C-0o: DataClass memberwise ctor params (≠ Module.Type / C-0a+).
+                    // Positional surface `P(3, 4)` — Omitted labels (≠ Struct Same).
+                    let init_name = SmolStr::new(format!("{name}_init"));
+                    self.function_param_labels.insert(
+                        init_name.clone(),
+                        field_types
+                            .iter()
+                            .map(|(f, _)| (ParamLabel::Omitted, f.clone()))
+                            .collect(),
+                    );
+                    self.function_params.insert(
+                        init_name,
+                        field_types.iter().map(|(_, ty)| ty.clone()).collect(),
+                    );
                     if has_attr(attrs, "MainActor") {
                         self.main_actor_types.insert(name.clone());
                     }

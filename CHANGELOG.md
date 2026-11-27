@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: DataClass memberwise ctor arg Unknown→ground sink → S004 ({Type}_init labels+function_params; Call dataclass_names reuse; soft arm retained; ≠ Module.Type) (C-0o; ≠ C-0a+ `[x]`)
 - feat: Actor Init ctor arg Unknown→ground sink → S004 ({Actor}_init function_params + Call key; soft arm retained; ≠ Module.Type) (C-0n; ≠ C-0a+ `[x]`)
 - feat: class/struct-body __subscript_* registration → reuse C-0k IndexAssign Unknown→ground sink → S004 (soft arm retained; ≠ extension-only) (C-0m; ≠ C-0a+ `[x]`)
 - feat: Init ctor arg Unknown→ground sink → S004 ({Type}_init function_params + Call key; soft arm retained; ≠ Actor/Module.Type) (C-0l; ≠ C-0a+ `[x]`)
