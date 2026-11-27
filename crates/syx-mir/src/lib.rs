@@ -263,6 +263,18 @@ mod mir_task_spawn_stack_floor;
 pub use mir_task_spawn_stack_floor::{
     verify_mir_task_spawn_stack_floor, verify_mir_task_spawn_stack_floor_functions,
 };
+mod mir_jump_if_nil_stack_floor;
+pub use mir_jump_if_nil_stack_floor::{
+    verify_mir_jump_if_nil_stack_floor, verify_mir_jump_if_nil_stack_floor_functions,
+};
+mod mir_actor_call_stack_floor;
+pub use mir_actor_call_stack_floor::{
+    verify_mir_actor_call_stack_floor, verify_mir_actor_call_stack_floor_functions,
+};
+mod mir_iterator_next_stack_floor;
+pub use mir_iterator_next_stack_floor::{
+    verify_mir_iterator_next_stack_floor, verify_mir_iterator_next_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,
