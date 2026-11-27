@@ -501,10 +501,22 @@ impl SemanticAnalyzer {
                         {
                             let init_name = SmolStr::new(format!("{name}_init"));
                             self.function_param_labels.insert(
-                                init_name,
+                                init_name.clone(),
                                 params
                                     .iter()
                                     .map(|p| (p.external_label.clone(), p.name.clone()))
+                                    .collect(),
+                            );
+                            // C-0l: ctor params for Unknown→ground sink (keyed {Type}_init).
+                            self.function_params.insert(
+                                init_name,
+                                params
+                                    .iter()
+                                    .map(|p| {
+                                        p.ty.as_ref()
+                                            .map(type_expr_to_id)
+                                            .unwrap_or(TypeId::Unknown)
+                                    })
                                     .collect(),
                             );
                             if *failable {
@@ -754,10 +766,22 @@ impl SemanticAnalyzer {
                         if let Decl::Init { params, .. } = member {
                             let init_name = SmolStr::new(format!("{name}_init"));
                             self.function_param_labels.insert(
-                                init_name,
+                                init_name.clone(),
                                 params
                                     .iter()
                                     .map(|p| (p.external_label.clone(), p.name.clone()))
+                                    .collect(),
+                            );
+                            // C-0l: ctor params for Unknown→ground sink (keyed {Type}_init).
+                            self.function_params.insert(
+                                init_name,
+                                params
+                                    .iter()
+                                    .map(|p| {
+                                        p.ty.as_ref()
+                                            .map(type_expr_to_id)
+                                            .unwrap_or(TypeId::Unknown)
+                                    })
                                     .collect(),
                             );
                         }
@@ -773,11 +797,16 @@ impl SemanticAnalyzer {
                     {
                         let init_name = SmolStr::new(format!("{name}_init"));
                         self.function_param_labels.insert(
-                            init_name,
+                            init_name.clone(),
                             field_types
                                 .iter()
                                 .map(|(f, _)| (ParamLabel::Same, f.clone()))
                                 .collect(),
+                        );
+                        // C-0l: memberwise ctor params for Unknown→ground sink.
+                        self.function_params.insert(
+                            init_name,
+                            field_types.iter().map(|(_, ty)| ty.clone()).collect(),
                         );
                     }
                     if !methods.is_empty() {

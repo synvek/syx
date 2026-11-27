@@ -696,6 +696,60 @@ func main() { put(1) }
 }
 
 #[test]
+fn c0l_untyped_init_arg_int_s004() {
+    let code = compile_fail_code(
+        r#"
+struct S {
+    init(_ n: Int) { }
+}
+func wrap(_ x) { S(x) }
+func main() { wrap(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+struct S {
+    init(_ n: Int) { }
+}
+func wrap(_ x) { S(x) }
+func main() { wrap(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0l_literal_init_arg_still_ok() {
+    compile_ok(
+        r#"
+struct S {
+    init(_ n: Int) { }
+}
+func main() { S(1) }
+"#,
+    );
+}
+
+#[test]
+fn c0l_any_init_arg_still_ok() {
+    compile_ok(
+        r#"
+struct S {
+    init(_ n: Any) { }
+}
+func wrap(_ x) { S(x) }
+func main() { wrap(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"

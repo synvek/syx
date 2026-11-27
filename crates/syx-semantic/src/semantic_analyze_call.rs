@@ -737,7 +737,16 @@ impl SemanticAnalyzer {
                 // protocol-element checking (not homogeneous unify → S014).
                 // Untyped params are stored as Unknown — do not assign-check
                 // against Unknown (breaks `func id(x) -> Int { … }` / parity).
-                let params = self.function_params.get(name).cloned();
+                // C-0l: ctor params keyed as {Type}_init (class / dataclass·struct).
+                let params = if self.class_names.contains(name)
+                    || self.dataclass_names.contains(name)
+                {
+                    self.function_params
+                        .get(&SmolStr::new(format!("{name}_init")))
+                        .cloned()
+                } else {
+                    self.function_params.get(name).cloned()
+                };
                 for (i, arg) in args.iter().enumerate() {
                     let raw = params.as_ref().and_then(|p| p.get(i));
                     let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
