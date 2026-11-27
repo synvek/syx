@@ -734,6 +734,10 @@ impl CodeGenerator {
                 .map(String::from)
                 .collect();
         }
+        // C-3cd: demote unresolved ConstFnIndex → ConstI32(-1) before MIR080 floor.
+        let mut mir_owned = mir.clone();
+        syx_mir::demote_unresolved_const_fn_index(&mut mir_owned);
+        let mir = &mir_owned;
         // C-3b: thin CFG / terminator floor before body selection / emit.
         syx_mir::verify_mir_cfg_floor(mir)?;
         // C-3a: fail-closed on conflicting same-name MIR bodies (no silent quality pick).
@@ -871,6 +875,11 @@ impl CodeGenerator {
         syx_mir::verify_mir_call_witness_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_call_super_stack_floor_functions(best_by_name.values().copied())?;
         syx_mir::verify_mir_call_closure_stack_floor_functions(best_by_name.values().copied())?;
+        // C-3cd: ConstFnIndex name resolve floor (MIR080) after CallClosure stack; R-33.
+        syx_mir::verify_mir_const_fn_index_floor_functions(
+            &mir_fn_index,
+            best_by_name.values().copied(),
+        )?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {
@@ -1534,14 +1543,10 @@ impl CodeGenerator {
             }
             MirOp::CallIndirect(n) => Instruction::CallIndirect(*n),
             MirOp::ConstFnIndex(name) => {
-                // R-33 / C-3c: real fn → ConstFnIndex. Missing optional prelude
-                // Equatable/Comparable shells (e.g. Int8_equals) → ConstI32(-1) so
-                // MakeIterator ignores the slot (never silent bind to fn 0).
-                // Call/MakeClosure/etc. still fail-closed via resolve_fn_index (MIR003).
-                match program.functions.iter().position(|f| f.name == *name) {
-                    Some(idx) => Instruction::ConstFnIndex(idx as u32),
-                    None => Instruction::ConstI32(-1),
-                }
+                // C-3cd / R-33: ConstFnIndex must resolve (MIR080). Optional missing
+                // shells demote to MirOp::ConstI32(-1) before floors — no silent -1 here.
+                let name = SmolStr::new(name.as_str());
+                Instruction::ConstFnIndex(Self::resolve_fn_index(program, &name)?)
             }
             MirOp::CallHost(idx) => Instruction::CallHost(*idx),
             MirOp::MakeClosure(name, cap) => {

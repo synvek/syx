@@ -59,6 +59,7 @@ mod c3by_mir_call_witness_stack_floor_contract;
 mod c3bz_mir_call_super_stack_floor_contract;
 mod c3c_mir_fn_index_contract;
 mod c3ca_mir_call_closure_stack_floor_contract;
+mod mir_const_fn_index_floor_contract;
 mod c3d_mir_stack_floor_contract;
 mod c3e_mir_type_floor_contract;
 mod c3f_mir_branch_floor_contract;

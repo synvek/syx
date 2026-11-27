@@ -1,6 +1,7 @@
 //! SYX MIR module lowering orchestrator.
 //! Extracted in S2-I214 (zero semantics).
 
+use crate::demote_unresolved_const_fn_index;
 use crate::lower_function_with_params;
 use crate::lower_type_members;
 use crate::mir_module_index::ModuleIndex;
@@ -220,5 +221,7 @@ pub fn lower_module_with_extra_extensions_kinds_and_source(
     }
     // C-3l: declare global slot bound from VarGlobal name table length.
     mir.global_count = globals.len() as u32;
+    // C-3cd: optional missing Equatable/Comparable shells → ConstI32(-1) before MIR080.
+    demote_unresolved_const_fn_index(&mut mir);
     Ok(mir)
 }

@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-3cc `[x]`**（stdlib MIR 传递 Call 链接；MIR016 Float 链冷绿）· **C-0v4 `[x]`**（FileStat/FileReadAsync/TcpReadAsync→Dictionary；删 Dictionary←Object carve-out）；C-0v/C-0a+ `[x]`；C-9g2 `[x]`；**C-3 仍 `[~]`**；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = 明示 park C-0e，或开厚 C-3 / R-33 薄刀**（不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-3cd `[x]`**（ConstFnIndex→MirFnIndex **MIR080** / R-33；demote 缺名→`ConstI32(-1)`）· C-3cc/C-0v4 `[x]`；C-0v/C-0a+ `[x]`；C-9g2 `[x]`；**C-3 仍 `[~]`**；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = 明示 park C-0e，或 HostFn arity / DefId 薄窗**（不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -92,7 +92,7 @@
 **验收（C-0u）：** `class Outer { class Inner { init(_ n: Int) {} } }` + `wrap(_ x) { Outer.Inner(x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0u `[x]`**。  
 **验收（C-0a+）：** `InferenceVar` 软、`Unknown`/`ErrorType` 不软；空数组 / Any / Object bag / `jStr(v: Any)` 绿；C-0a…u 负向绿；**C-0a+ `[x]`**。  
 **验收（C-0v）：** Object→Int **S004**；全局 `(_, Object)` 已删；**C-0v `[x]`**。
-**验收（C-0v4）：** FileStat/FileReadAsync/TcpReadAsync 表对齐 Dictionary；无 Dictionary←Object 逃逸；`type_soundness` + `c0v_object_to_int_s004` + `s004_does_not_leak` 绿；**C-0v4 `[x]`**；语义维试探 **2.2**；默认下一 → **明示 park C-0e，或开厚 C-3 / R-33 薄刀**（**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-0v4）：** FileStat/FileReadAsync/TcpReadAsync 表对齐 Dictionary；无 Dictionary←Object 逃逸；`type_soundness` + `c0v_object_to_int_s004` + `s004_does_not_leak` 绿；**C-0v4 `[x]`**；语义维试探 **2.2**。
 **不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG；本窗不 unpark C-0e。
 
 ### C-1 · ManagedHeap 安全默认（P0） — `[x]` 默认降级+identity+immutable+叙事
@@ -223,6 +223,7 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3bz** | `[x]` | 薄 CallSuper 栈：`verify_mir_call_super_stack_floor` → **MIR078**（pilot∪CallSuper；Δ=(n,1) via callee；仅已证高度不足；≠ `_init` self 路径 / MIR016）；挂钩 call-witness 之后；census [`c-3bz-mir-call-super-stack-floor-census`](harness/census-docs/c-3bz-mir-call-super-stack-floor-census.md) |
 | **C-3ca** | `[x]` | 薄 CallClosure 栈：`verify_mir_call_closure_stack_floor` → **MIR079**（pilot∪CallClosure；Δ=(1,1)；仅已证高度不足；≠ VM (1+n,1) 完整 arity）；挂钩 call-super 之后；census [`c-3ca-mir-call-closure-stack-floor-census`](harness/census-docs/c-3ca-mir-call-closure-stack-floor-census.md) |
 | **C-3cc** | `[x]` | stdlib MIR 传递 Call 链接：`link_stdlib_mir_call_closure` / `ensure_stdlib_mir_call_closure`（prelude `compile_to_program` + `mir_unify` merge）；**不**放宽 C-3p；Float_bitWidth→Float32_bitWidth；`s004_does_not_leak` 冷绿；**C-3 仍 `[~]`** |
+| **C-3cd** | `[x]` | 薄 ConstFnIndex 名解析：`verify_mir_const_fn_index_floor` → **MIR080**（缺名先 `demote_unresolved_const_fn_index`→`ConstI32(-1)`；≠ CallIndirect arity / HostFn arity）；挂钩 CallClosure 栈之后；census [`c-3cd-mir-const-fn-index-floor-census`](harness/census-docs/c-3cd-mir-const-fn-index-floor-census.md)；**C-3 仍 `[~]`** |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -296,7 +297,8 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3by）：** 已证 `CallWitness` 且 `height < n` → **MIR077**；合法流 / 无 CallWitness / abandon 不破；硬 KPI 不破；**C-3by `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bz**。
 **验收（C-3bz）：** 已证 `CallSuper` 且 `height < n` → **MIR078**；合法流 / 无 CallSuper / abandon 不破；硬 KPI 不破；**C-3bz `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3ca**。
 **验收（C-3ca）：** 已证空栈 `CallClosure` → **MIR079**；合法流 / 无 CallClosure / abandon 不破；硬 KPI 不破；**C-3ca `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。
-**验收（C-3cc）：** 冷 unified / prelude MIR 下 `Float_bitWidth`⇒`Float32_bitWidth` 在 index；`s004_does_not_leak` 绿；C-3p 地板不放宽；**C-3cc `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-0v4 后** park C-0e / 厚 C-3（**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-3cc）：** 冷 unified / prelude MIR 下 `Float_bitWidth`⇒`Float32_bitWidth` 在 index；`s004_does_not_leak` 绿；C-3p 地板不放宽；**C-3cc `[x]`**；**C-3 仍 `[~]`**。
+**验收（C-3cd）：** 未解析 `ConstFnIndex` → **MIR080**（或 demote 后绿）；合法名 / 无此类 op 不破；codegen 不再静默 `-1`；C-3p/`s004` 不破；硬 KPI 不破；**C-3cd `[x]`**；**C-3 仍 `[~]`**。默认下一 → **明示 park C-0e**，或 HostFn arity / DefId 薄窗（**不**宣称 C-3/C-5 `[x]`）。  
 **C-3cb（Wasm W001 If underflow）：** 2026-11-27 复测 `fixtures/test_guard.sy` `syx build --wasm` **绿** → **不插队**；路径敏感 JumpIfNil / emit tracker 仍 park（≠ MIR074 空栈）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
@@ -395,7 +397,7 @@ formatter CST lossless；Ch15 隐式 `super.init` MD 诚实；语言书与 parse
 | **C-9f** | `[x]` | 公开 `docs/census` 窗账本迁私有；留能力摘要/stub |
 | **C-9g2** | `[x]` | 清跨轴阶段回灌的 `docs/census/c-8a…f`；lang `c8c`/`c8e` 改 `tests/lang/fixtures/`；公开 census 仅 README |
 
-**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f + **g2** 真收口）；产品默认下一已迁至 **C-0v** 后（现 = park C-0e / 跨轴 C-3）。
+**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f + **g2** 真收口）；产品默认下一现 = **明示 park C-0e**，或 HostFn arity / DefId 薄窗（C-3cd 后）。
 
 ## 3. 显式 park（非默认下一）
 

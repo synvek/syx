@@ -1,11 +1,11 @@
 //! C-3p: thin MIR named-callee resolve floor (fail-closed).
-//! Not ConstFnIndex fail-closed (R-33 `-1` sentinel kept) · Not CallIndirect
+//! Not ConstFnIndex (owned by C-3cd / MIR080) · Not CallIndirect
 //! · Not HostFn arity · Not Call(ModuleId) IR.
 //!
 //! Floor rules (MIR016):
 //! - `Call` / `CallSuper` / `ActorCall` / `ActorSend` / `MakeClosure` / `TaskSpawn`
 //!   names must resolve in [`MirFnIndex`]
-//! - `ConstFnIndex` is **not** scanned
+//! - `ConstFnIndex` is **not** scanned here (see C-3cd)
 //! - no named-callee ops → OK
 
 use crate::mir_diag::mir_error;

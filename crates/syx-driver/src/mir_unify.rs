@@ -80,6 +80,8 @@ fn finalize_unified_mir(mir: &mut syx_mir::MirModule) {
     mir.functions
         .sort_by(|a, b| a.name.as_str().cmp(b.name.as_str()));
     renumber_protocol_witnesses(mir);
+    // C-3cd: optional missing shells → ConstI32(-1) before ConstFnIndex floor (MIR080).
+    syx_mir::demote_unresolved_const_fn_index(mir);
 }
 
 /// After function sort, refresh `__witness_*` fn indices stored in class inits.
@@ -870,6 +872,8 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_call_witness_stack_floor(&mir)?;
     syx_mir::verify_mir_call_super_stack_floor(&mir)?;
     syx_mir::verify_mir_call_closure_stack_floor(&mir)?;
+    // C-3cd: ConstFnIndex name resolve floor (MIR080) after CallClosure stack; R-33.
+    syx_mir::verify_mir_const_fn_index_floor_functions(&fn_index, mir.functions.iter())?;
     Ok(mir)
 }
 
