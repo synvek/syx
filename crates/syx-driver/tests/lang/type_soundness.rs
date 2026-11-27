@@ -495,6 +495,74 @@ func main() { put(1) }
 }
 
 #[test]
+fn c0i_untyped_index_assign_array_int_s004() {
+    let code = compile_fail_code(
+        r#"
+func put(_ x) {
+    var a: Array<Int> = [0]
+    a[0] = x
+}
+func main() { put(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+func put(_ x) {
+    var a: Array<Int> = [0]
+    a[0] = x
+}
+func main() { put(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0i_untyped_index_assign_dict_int_s004() {
+    let code = compile_fail_code(
+        r#"
+func put(_ x) {
+    var d: Dictionary<String, Int> = [:]
+    d["k"] = x
+}
+func main() { put(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+}
+
+#[test]
+fn c0i_literal_index_assign_still_ok() {
+    compile_ok(
+        r#"
+func main() {
+    var a: Array<Int> = [0]
+    a[0] = 1
+}
+"#,
+    );
+}
+
+#[test]
+fn c0i_any_index_assign_still_ok() {
+    compile_ok(
+        r#"
+func put(_ x) {
+    var a: Array<Any> = [0]
+    a[0] = x
+}
+func main() { put(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"

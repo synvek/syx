@@ -760,10 +760,18 @@ impl SemanticAnalyzer {
                         let found_val =
                             self.analyze_expr_with_expected(value, Some(val_ty.as_ref()))?;
                         self.check_assignable_with_literal(
-                            *val_ty,
-                            found_val,
+                            *val_ty.clone(),
+                            found_val.clone(),
                             "value",
                             Some(value),
+                            *span,
+                        )?;
+                        // C-0i: index-assign Unknown→ground sink (≠ close soft arm / C-0a+).
+                        self.check_unknown_to_ground_sink(
+                            val_ty.as_ref(),
+                            &found_val,
+                            value,
+                            "value",
                             *span,
                         )?;
                     } else {
@@ -785,10 +793,18 @@ impl SemanticAnalyzer {
                         let found_val =
                             self.analyze_expr_with_expected(value, Some(elem.as_ref()))?;
                         self.check_assignable_with_literal(
-                            *elem,
-                            found_val,
+                            *elem.clone(),
+                            found_val.clone(),
                             "value",
                             Some(value),
+                            *span,
+                        )?;
+                        // C-0i: index-assign Unknown→ground sink (≠ close soft arm / C-0a+).
+                        self.check_unknown_to_ground_sink(
+                            elem.as_ref(),
+                            &found_val,
+                            value,
+                            "value",
                             *span,
                         )?;
                     } else {
