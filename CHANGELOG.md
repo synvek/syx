@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: Actor Init ctor arg Unknown→ground sink → S004 ({Actor}_init function_params + Call key; soft arm retained; ≠ Module.Type) (C-0n; ≠ C-0a+ `[x]`)
 - feat: class/struct-body __subscript_* registration → reuse C-0k IndexAssign Unknown→ground sink → S004 (soft arm retained; ≠ extension-only) (C-0m; ≠ C-0a+ `[x]`)
 - feat: Init ctor arg Unknown→ground sink → S004 ({Type}_init function_params + Call key; soft arm retained; ≠ Actor/Module.Type) (C-0l; ≠ C-0a+ `[x]`)
 - feat: extension subscript_set IndexAssign Unknown→ground sink → S004 (subscript_return_type; soft arm retained; ≠ class-body subscript / Init) (C-0k; ≠ C-0a+ `[x]`)

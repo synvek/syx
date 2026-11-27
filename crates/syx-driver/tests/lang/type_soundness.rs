@@ -820,6 +820,60 @@ func main() { put(1) }
 }
 
 #[test]
+fn c0n_untyped_actor_init_arg_int_s004() {
+    let code = compile_fail_code(
+        r#"
+actor Counter {
+    init(_ n: Int) { }
+}
+func wrap(_ x) { Counter(x) }
+func main() { wrap(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+actor Counter {
+    init(_ n: Int) { }
+}
+func wrap(_ x) { Counter(x) }
+func main() { wrap(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0n_literal_actor_init_arg_still_ok() {
+    compile_ok(
+        r#"
+actor Counter {
+    init(_ n: Int) { }
+}
+func main() { Counter(1) }
+"#,
+    );
+}
+
+#[test]
+fn c0n_any_actor_init_arg_still_ok() {
+    compile_ok(
+        r#"
+actor Counter {
+    init(_ n: Any) { }
+}
+func wrap(_ x) { Counter(x) }
+func main() { wrap(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"

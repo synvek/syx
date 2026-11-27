@@ -624,6 +624,34 @@ impl SemanticAnalyzer {
                         .collect();
                     self.actor_fields.insert(name.clone(), fields);
                     for member in members {
+                        if let Decl::Init {
+                            params, failable, ..
+                        } = member
+                        {
+                            let init_name = SmolStr::new(format!("{name}_init"));
+                            self.function_param_labels.insert(
+                                init_name.clone(),
+                                params
+                                    .iter()
+                                    .map(|p| (p.external_label.clone(), p.name.clone()))
+                                    .collect(),
+                            );
+                            // C-0n: Actor ctor params for Unknown→ground sink (keyed {Actor}_init).
+                            self.function_params.insert(
+                                init_name,
+                                params
+                                    .iter()
+                                    .map(|p| {
+                                        p.ty.as_ref()
+                                            .map(type_expr_to_id)
+                                            .unwrap_or(TypeId::Unknown)
+                                    })
+                                    .collect(),
+                            );
+                            if *failable {
+                                self.failable_inits.insert(name.clone());
+                            }
+                        }
                         if let Decl::Function {
                             name: method,
                             params,

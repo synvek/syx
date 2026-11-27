@@ -737,9 +737,10 @@ impl SemanticAnalyzer {
                 // protocol-element checking (not homogeneous unify → S014).
                 // Untyped params are stored as Unknown — do not assign-check
                 // against Unknown (breaks `func id(x) -> Int { … }` / parity).
-                // C-0l: ctor params keyed as {Type}_init (class / dataclass·struct).
+                // C-0l/C-0n: ctor params keyed as {Type}_init (class / dataclass·struct / actor).
                 let params = if self.class_names.contains(name)
                     || self.dataclass_names.contains(name)
+                    || self.actor_types.contains(name)
                 {
                     self.function_params
                         .get(&SmolStr::new(format!("{name}_init")))
@@ -829,6 +830,10 @@ impl SemanticAnalyzer {
                         let init_name = SmolStr::new(format!("{name}_init"));
                         self.check_call_argument_labels(&init_name, args, *span);
                     }
+                } else if self.actor_types.contains(name) {
+                    // C-0n: Actor ctor labels keyed {Actor}_init.
+                    let init_name = SmolStr::new(format!("{name}_init"));
+                    self.check_call_argument_labels(&init_name, args, *span);
                 }
                 if let Some(TypeId::GenericFn {
                     name: fn_name,
