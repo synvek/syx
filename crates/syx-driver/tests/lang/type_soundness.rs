@@ -737,6 +737,60 @@ func main() { get(0, "k") }
 }
 
 #[test]
+fn c0r_untyped_string_index_int_s004() {
+    let code = compile_fail_code(
+        r#"
+func get(_ i) {
+    let s = "ab"
+    let c = s[i]
+}
+func main() { get(0) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+func get(_ i) {
+    let s = "ab"
+    let c = s[i]
+}
+func main() { get(0) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0r_literal_string_index_still_ok() {
+    compile_ok(
+        r#"
+func main() {
+    let s = "ab"
+    let c = s[0]
+}
+"#,
+    );
+}
+
+#[test]
+fn c0r_any_string_index_still_ok() {
+    compile_ok(
+        r#"
+func get(_ i: Any) {
+    let s = "ab"
+    let c = s[0]
+}
+func main() { get(0) }
+"#,
+    );
+}
+
+#[test]
 fn c0j_untyped_method_arg_int_s004() {
     let code = compile_fail_code(
         r#"

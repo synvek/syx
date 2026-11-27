@@ -584,7 +584,23 @@ impl SemanticAnalyzer {
                         Ok(*inner)
                     }
                     TypeId::String => {
-                        self.analyze_expr(index)?;
+                        let idx_ty = TypeId::platform_int();
+                        let found_idx = self.analyze_expr_with_expected(index, Some(&idx_ty))?;
+                        self.check_assignable_with_literal(
+                            idx_ty.clone(),
+                            found_idx.clone(),
+                            "index",
+                            Some(index),
+                            *span,
+                        )?;
+                        // C-0r: index-read string-index Unknown→ground sink (≠ close soft arm / C-0a+).
+                        self.check_unknown_to_ground_sink(
+                            &idx_ty,
+                            &found_idx,
+                            index,
+                            "index",
+                            *span,
+                        )?;
                         Ok(TypeId::Named(SmolStr::new("Character")))
                     }
                     TypeId::Dictionary { key, value } => {

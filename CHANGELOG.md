@@ -1,4 +1,5 @@
 ### SYX 0.4.0
+- feat: String Index Unknown→ground sink → S004 (platform_int index; soft arm retained; ≠ String write / subscript index) (C-0r; ≠ C-0a+ `[x]`)
 - feat: Index read index/key Unknown→ground sink → S004 (Array index + Dict key; soft arm retained; ≠ String/subscript get index) (C-0q; ≠ C-0a+ `[x]`)
 - feat: IndexAssign index/key Unknown→ground sink → S004 (Array index + Dict key; soft arm retained; ≠ subscript index / Index read) (C-0p; ≠ C-0a+ `[x]`)
 - feat: DataClass memberwise ctor arg Unknown→ground sink → S004 ({Type}_init labels+function_params; Call dataclass_names reuse; soft arm retained; ≠ Module.Type) (C-0o; ≠ C-0a+ `[x]`)
