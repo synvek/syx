@@ -251,6 +251,18 @@ mod mir_throw_stack_floor;
 pub use mir_throw_stack_floor::{
     verify_mir_throw_stack_floor, verify_mir_throw_stack_floor_functions,
 };
+mod mir_return_err_stack_floor;
+pub use mir_return_err_stack_floor::{
+    verify_mir_return_err_stack_floor, verify_mir_return_err_stack_floor_functions,
+};
+mod mir_actor_send_stack_floor;
+pub use mir_actor_send_stack_floor::{
+    verify_mir_actor_send_stack_floor, verify_mir_actor_send_stack_floor_functions,
+};
+mod mir_task_spawn_stack_floor;
+pub use mir_task_spawn_stack_floor::{
+    verify_mir_task_spawn_stack_floor, verify_mir_task_spawn_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

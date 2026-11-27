@@ -1,4 +1,7 @@
 ### SYX 0.4.0
+- feat: MIR TaskSpawn stack-height floor → MIR073 (pilot∪TaskSpawn; Δ=(n,1) via callee; proven height only; ≠ JumpIfNil height) (C-3bu; ≠ C-3 `[x]`)
+- feat: MIR ActorSend stack-height floor → MIR072 (pilot∪ActorSend; Δ=(n,1) via callee; proven height only; ≠ full arity semantics) (C-3bt; ≠ C-3 `[x]`)
+- feat: MIR ReturnErr stack-height floor → MIR071 (pilot∪ReturnErr; Δ=(1,0); proven height only; ≠ MIR009) (C-3bs; ≠ C-3 `[x]`)
 - feat: MIR Throw stack-height floor → MIR070 (pilot∪Throw; Δ=(1,0); proven height only; ≠ MIR009/full exception) (C-3br; ≠ C-3 `[x]`)
 - feat: MIR AwaitSuspend stack-height floor → MIR069 (pilot∪AwaitSuspend; Δ=(1,1); proven height only; ≠ MIR015) (C-3bq; ≠ C-3 `[x]`)
 - feat: MIR TaskJoin stack-height floor → MIR068 (pilot∪TaskJoin; Δ=(1,1); proven height only; ≠ expand pilot/MIR004) (C-3bp; ≠ C-3 `[x]`)

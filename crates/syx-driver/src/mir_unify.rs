@@ -747,6 +747,9 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_task_join_stack_floor(&mir)?;
     syx_mir::verify_mir_await_suspend_stack_floor(&mir)?;
     syx_mir::verify_mir_throw_stack_floor(&mir)?;
+    syx_mir::verify_mir_return_err_stack_floor(&mir)?;
+    syx_mir::verify_mir_actor_send_stack_floor(&mir)?;
+    syx_mir::verify_mir_task_spawn_stack_floor(&mir)?;
     Ok(mir)
 }
 
