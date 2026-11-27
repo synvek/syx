@@ -48,7 +48,7 @@ tools/sgate/.tmp_*/
 .qoder/
 # Local planning dir stays private by default (dual-repo tip/ledger/todos).
 # Ignore contents (not the dir) so negations below can re-include claim SSOT.
-# Credibility nails read plan/01 + plan/02 on clean CI checkouts.
+# plan/01 + plan/02 tracked for public status/roadmap SSOT (C-9: meta harness no longer nails them).
 plan/*
 !plan/README.md
 !plan/01-project-status.md

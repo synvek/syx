@@ -17,4 +17,8 @@
 
 Legacy `contains` / fingerprint nails are audited in [`plan/topics/ga-evidence-audit.md`](../plan/topics/ga-evidence-audit.md); cleanup is Wave A W2+.
 
+## C-9a · credibility excluded from fingerprint floor
+
+`scripts/audit_behavioral_tests.sh` path-excludes any residual `tests/credibility/` path. Floor SSOT = **3600 / 1700**. Public invariants: `tests/mir_floor/` (**counted**). Maintainer meta/census: `plan/harness/`.
+
 See [`scripts/audit_behavioral_tests.sh`](../scripts/audit_behavioral_tests.sh) and [`docs/differential/oracle-v0.md`](differential/oracle-v0.md).

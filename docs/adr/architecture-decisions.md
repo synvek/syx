@@ -12,7 +12,7 @@
 |--------|---------------|
 | Version | `117.0` · manifest phase `139` |
 | MIR cache | `syx-cache-v1` under `target/cache/` |
-| Audit floors | driver ≥2600 · LSP ≥1700 — **smoke / anti-delete only** (Wave A W1 / ADR-345 / C-10 / C-7c); **not** release quality KPI or coverage |
+| Audit floors | driver ≥3600 · LSP ≥1700 — **smoke / anti-delete only** (Wave A W1 / ADR-345 / C-10 / C-7c); **not** release quality KPI or coverage |
 | Stdlib layout | Repository `packages/` |
 | Project layout | `target/{cache,debug,release}/`; CLI `--debug` / `--release` |
 | Native backend | **LLVM is the sole native backend** |

@@ -1,4 +1,4 @@
-> **SA 对齐期已退出（2026-11-09）：** [sa-exit](../../docs/adr/sa-exit.md) · census [sa-6-exit-census](../../docs/census/sa-6-exit-census.md)。现行用户 `import`：`System` / `Networking` / `Synchronization` / `Logging` / `Numerics` / …（见 `packages/internal/manifest.json`）。**禁止**宣称官方模块名 `Foundation`。下文大量历史窗仍写旧 `Os`/`Net`/`IO` 叙事 = **冻结账本**，≠ 现行产品面。下一 = **post-SA Residual / 维护**。
+> **SA 对齐期已退出（2026-11-09）：** [sa-exit](../../docs/adr/sa-exit.md) · census [sa-6-exit-census](../../docs/census/README.md)。现行用户 `import`：`System` / `Networking` / `Synchronization` / `Logging` / `Numerics` / …（见 `packages/internal/manifest.json`）。**禁止**宣称官方模块名 `Foundation`。下文大量历史窗仍写旧 `Os`/`Net`/`IO` 叙事 = **冻结账本**，≠ 现行产品面。下一 = **post-SA Residual / 维护**。
 >
 > **最近更新：** 2026-09-16 — Wave A/B 轴收官；B-09 `[x]`（窄 GC GA / W558 / ADR-902）；HostFn 554；MIR distance 0；规划 SSOT 已精简见 `plan/01`+`plan/02`；后续优先 Wave F 卫生。  
 > **历史窗日志：** 详见 [`plan/archive/02-improvement-roadmap-pre-w559-ledger.md`](../../plan/archive/02-improvement-roadmap-pre-w559-ledger.md)（冻结）。
@@ -89,7 +89,7 @@
 | 语言 / 营销版本 | **SYX 117.0** |
 | Manifest phase | **139** |
 | MIR / 增量缓存 | **`syx-cache-v1`** |
-| 行为化 audit 下限 | driver **≥2600** · LSP **≥1700** — **smoke / anti-delete only**（Wave A W1 / ADR-345 / C-10 / C-7c；**非**覆盖率或 release KPI） |
+| 行为化 audit 下限 | driver **≥3600** · LSP **≥1700** — **smoke / anti-delete only**（Wave A W1 / ADR-345 / C-10 / C-7c；**非**覆盖率或 release KPI） |
 | 架构决议 | [architecture-decisions.md](../../docs/adr/architecture-decisions.md) |
 | 特性总表 ground truth | 本文件 + `crates/syx-driver/tests/` · `cargo test -p syx-lsp` |
 

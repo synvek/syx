@@ -9,7 +9,9 @@
 | 文件 | 用途 |
 |------|------|
 | [01-project-status.md](01-project-status.md) | **当前整体状态**（收敛期；~2.5/5 研究型 beta） |
-| [02-improvement-roadmap.md](02-improvement-roadmap.md) | **活 backlog**（C-0 / C-1 `[x]`；**C-2a…C-2b-5** `[x]`；默认下一 = **C-2b-6**） |
+| [02-improvement-roadmap.md](02-improvement-roadmap.md) | **活 backlog**（收敛期 C-*；默认下一见该文件页眉，**非** C-2b-6） |
+| [03-maintainer-harness-governance.md](03-maintainer-harness-governance.md) | **C-9 `[x]`**：credibility meta / census → `plan/harness/`；公开 CI = lang + mir_floor |
+| [harness/](harness/) | 维护者 census 脚本/文档与 meta 合约（不进公开默认 `cargo test`） |
 | [syx-status-final-report.md](syx-status-final-report.md) | 外部只读审计输入（2026-11） |
 | [todo-003.md](todo-003.md) | Swift 对齐分析底稿（历史输入） |
 | [topics/](topics/) | 短专题：JIT、MIR/AOT、GC、profiles、HostFn、LLVM、插件 ABI v2 |
@@ -42,4 +44,4 @@
 5. **不要**在 `archive/*-ledger.md` 上继续当 backlog 打勾。  
 6. 开新窗口：引用 `02` 的 **C-*** ID；需要施工步骤时再建 `.cursor/plans/*.plan.md`。
 
-**当前提示：** SA / R / U 编号账本已收口（详账见 [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)）。活施工轴 = **C-2b-6**（下一批 `native=real`；C-2a…C-2b-5 已退出；C-2c/d · C-0a+/e park）。U-41+ / JIT / SyxHost / 真隐式 `CallSuper` / 产品伞 / Foundation 命名仍 park。
+**当前提示：** SA / R / U 编号账本已收口。**C-9 `[x]`**：meta/census 在 [`harness/`](harness/)；公开 CI = `lang` + `mir_floor`；count-gate **3600/1700**。产品默认下一 = **跨轴**（C-0a+ prep / C-0e / Module.Type prep；C-3/C-5 仍 `[~]`）。U-41+ / JIT / SyxHost / 真隐式 `CallSuper` / 产品伞 / Foundation 命名仍 park。

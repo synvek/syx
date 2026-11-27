@@ -24,7 +24,7 @@ Historical ` ```swift ` fences are treated as `sy,check` by the baseline tool.
 - Comparison normalizes CRLF and strips a single trailing newline from both sides; otherwise exact match.
 - Missing `// prints:` on an `output` fence → `run_fail`.
 
-Default `sy` / `syx` blocks stay **check-only**. Full-book run is not the CI default (cold start ≈ 3 s/block; see [`r-38-book-run-census.md`](census/r-38-book-run-census.md)).  
+Default `sy` / `syx` blocks stay **check-only**. Full-book run is not the CI default (cold start ≈ 3 s/block; see [`r-38-book-run-census.md`](census/README.md)).  
 Runner flag `--only-output` evaluates only `sy,output` fences (census / local pin check).
 
 ## Examples

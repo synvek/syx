@@ -373,7 +373,7 @@ syx daemon ping
 syx daemon stop
 ```
 
-详见 [`docs/census/stdlib-vm-fastpath-census.md`](../census/stdlib-vm-fastpath-census.md)。
+详见 [`docs/census/stdlib-vm-fastpath-census.md`](../census/README.md)。
 
 ---
 

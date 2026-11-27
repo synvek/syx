@@ -6,7 +6,7 @@
 
 编号流水线文档默认英文；中文副本在 [`zh/`](./) 目录下，文件名为 `*.zh-CN.md`。
 
-> **当前版本：** SYX **0.4.0** · cache `syx-cache-v1` · audit driver ≥2600 / LSP ≥1700 · 许可证 [Apache-2.0](../../LICENSE)  
+> **当前版本：** SYX **0.4.0** · cache `syx-cache-v1` · audit driver ≥3600 / LSP ≥1700 · 许可证 [Apache-2.0](../../LICENSE)  
 > **原生 AOT：** LLVM sole · **实现状态 SSOT：** [books/shared/implementation-status.md](../../books/shared/implementation-status.md)  
 > **现行 ADR：** [adr/current.md](../adr/current.md) · 历史账本：[adr/architecture-decisions.md](../adr/architecture-decisions.md)
 
@@ -85,5 +85,5 @@ examples/            # 示例程序
 - **语言 / crate：** **0.4.0**（Cargo workspace SSOT）· MIR cache `syx-cache-v1`
 - **现行 ADR：** [adr/current.md](../adr/current.md) · 历史：[adr/architecture-decisions.md](../adr/architecture-decisions.md)
 - **Native：** LLVM only
-- **Audit：** driver ≥2600 · LSP ≥1700（见 `scripts/audit_behavioral_tests.sh`；仅 anti-delete ≠ 成熟度 KPI）
+- **Audit：** driver ≥3600 · LSP ≥1700（见 `scripts/audit_behavioral_tests.sh`；仅 anti-delete ≠ 成熟度 KPI）
 - **实现状态：** [books/shared/implementation-status.md](../../books/shared/implementation-status.md)

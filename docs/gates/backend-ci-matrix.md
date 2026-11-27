@@ -3,7 +3,7 @@
 **Role:** Single source of truth for which backends are **default-hard** vs **soft / experimental**.  
 **Live backlog:** [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · C-2  
 **Status snapshot:** [`plan/01-project-status.md`](../../plan/01-project-status.md) · Native 2.0 / CI soft  
-**Census:** [`docs/census/c-2a-backend-ci-matrix-census.md`](../census/c-2a-backend-ci-matrix-census.md)
+**Census:** [`docs/census/c-2a-backend-ci-matrix-census.md`](../census/README.md)
 
 **Date:** 2026-11-24 · **C-2a…C-2d**（`-N` = N×历史 `+`；C-2 轴收口）
 
@@ -154,131 +154,131 @@ These are the **default support claims** for SYX as research beta. Do not advert
 
 ### C-3a (done · MIR quality demote)
 
-Codegen no longer silently picks a higher-`mir_function_quality` body for duplicate MIR names. Conflicting fingerprints → **MIR001** fail-closed; identical fingerprints keep first. Same-type overloads get arity-qualified MIR names upstream (`__a{N}`). Census: [`c-3a-mir-quality-demote-census`](../census/c-3a-mir-quality-demote-census.md). **≠** C-3 full exit / DefId / full verifier.
+Codegen no longer silently picks a higher-`mir_function_quality` body for duplicate MIR names. Conflicting fingerprints → **MIR001** fail-closed; identical fingerprints keep first. Same-type overloads get arity-qualified MIR names upstream (`__a{N}`). Census: [`c-3a-mir-quality-demote-census`](../census/README.md). **≠** C-3 full exit / DefId / full verifier.
 
 ### C-3b (done · MIR CFG / terminator floor)
 
-`verify_mir_cfg_floor` fail-closes on bad entry, OOB jump/successor, or missing terminator (**MIR002**). Hooked at `build_unified_mir` and `compile_from_mir_with_source`. Census: [`c-3b-mir-cfg-floor-census`](../census/c-3b-mir-cfg-floor-census.md). **≠** C-3 full exit / DefId / full MirOp stack·type verifier.
+`verify_mir_cfg_floor` fail-closes on bad entry, OOB jump/successor, or missing terminator (**MIR002**). Hooked at `build_unified_mir` and `compile_from_mir_with_source`. Census: [`c-3b-mir-cfg-floor-census`](../census/README.md). **≠** C-3 full exit / DefId / full MirOp stack·type verifier.
 
 ### C-3c (done · MirFnIndex / FuncId)
 
-`FuncId` + `MirFnIndex::build/require` — dense name→id table; duplicate name / unknown Call callee → **MIR003**. Hooked after CFG floor on unify + codegen; Call resolve fail-closed (no fn-0 bind). Census: [`c-3c-mir-fn-index-census`](../census/c-3c-mir-fn-index-census.md). **≠** ModuleId graph / Call(FuncId) IR rewrite / full MirOp verifier.
+`FuncId` + `MirFnIndex::build/require` — dense name→id table; duplicate name / unknown Call callee → **MIR003**. Hooked after CFG floor on unify + codegen; Call resolve fail-closed (no fn-0 bind). Census: [`c-3c-mir-fn-index-census`](../census/README.md). **≠** ModuleId graph / Call(FuncId) IR rewrite / full MirOp verifier.
 
 ### C-3d (done · MIR stack-height floor)
 
-`verify_mir_stack_floor` / `verify_mir_stack_floor_functions` — suite1/pilot value-stack height; underflow → **MIR004**. Hooked after CFG + FnIndex on unify + codegen (post-unique bodies). CallHost / non-pilot abandon stream; Return empty = mir-run Nil pad. Census: [`c-3d-mir-stack-floor-census`](../census/c-3d-mir-stack-floor-census.md). **≠** cross-block join φ / full type / exception verifier.
+`verify_mir_stack_floor` / `verify_mir_stack_floor_functions` — suite1/pilot value-stack height; underflow → **MIR004**. Hooked after CFG + FnIndex on unify + codegen (post-unique bodies). CallHost / non-pilot abandon stream; Return empty = mir-run Nil pad. Census: [`c-3d-mir-stack-floor-census`](../census/README.md). **≠** cross-block join φ / full type / exception verifier.
 
 ### C-3e (done · MIR type-tag floor)
 
-`verify_mir_type_floor` / `verify_mir_type_floor_functions` — suite1/pilot coarse tags; Nil on Add / non-numeric on Sub·Mul·Div → **MIR005**. Hooked after stack floor on unify + codegen. Add string concat allowed (mir-run). Census: [`c-3e-mir-type-floor-census`](../census/c-3e-mir-type-floor-census.md). **≠** locals slot types / cross-block φ / full semantic types.
+`verify_mir_type_floor` / `verify_mir_type_floor_functions` — suite1/pilot coarse tags; Nil on Add / non-numeric on Sub·Mul·Div → **MIR005**. Hooked after stack floor on unify + codegen. Add string concat allowed (mir-run). Census: [`c-3e-mir-type-floor-census`](../census/README.md). **≠** locals slot types / cross-block φ / full semantic types.
 
 ### C-3f (done · MIR JumpIfFalse condition tag)
 
-`verify_mir_branch_floor` / `verify_mir_branch_floor_functions` — JumpIfFalse condition must be Bool|Unknown; concrete I32|Str|Nil → **MIR006**. Cmp/logic ops treated as Bool producers (without expanding suite1 pilot predicate). Hooked after type floor. Census: [`c-3f-mir-branch-floor-census`](../census/c-3f-mir-branch-floor-census.md). **≠** JumpIfNil / dominators / exception pairing.
+`verify_mir_branch_floor` / `verify_mir_branch_floor_functions` — JumpIfFalse condition must be Bool|Unknown; concrete I32|Str|Nil → **MIR006**. Cmp/logic ops treated as Bool producers (without expanding suite1 pilot predicate). Hooked after type floor. Census: [`c-3f-mir-branch-floor-census`](../census/README.md). **≠** JumpIfNil / dominators / exception pairing.
 
 ### C-3g (done · MIR JumpIfNil condition tag)
 
-`verify_mir_nil_branch_floor` / `verify_mir_nil_branch_floor_functions` — JumpIfNil condition must be Nil|Unknown; concrete Bool|Str|I32 → **MIR007**. Nil pops; Unknown left on stack (mir-run non-Nil path). Hooked after branch floor. Census: [`c-3g-mir-nil-branch-floor-census`](../census/c-3g-mir-nil-branch-floor-census.md). **≠** BeginTry/Throw pairing / ModuleId / full MirOp verifier.
+`verify_mir_nil_branch_floor` / `verify_mir_nil_branch_floor_functions` — JumpIfNil condition must be Nil|Unknown; concrete Bool|Str|I32 → **MIR007**. Nil pops; Unknown left on stack (mir-run non-Nil path). Hooked after branch floor. Census: [`c-3g-mir-nil-branch-floor-census`](../census/README.md). **≠** BeginTry/Throw pairing / ModuleId / full MirOp verifier.
 
 ### C-3h (done · MIR ModuleId thin gate)
 
-`ModuleId` + `MirModIndex::build/require` + `collect_module_names_from_paths` — dense module-name→id table; duplicate name / unknown require / same-stem different path → **MIR008**. `MirModule.module_names` populated from `ModuleGraph.order` stems (empty OK). Hooked after nil-branch floor on unify + codegen. Census: [`c-3h-mir-mod-index-census`](../census/c-3h-mir-mod-index-census.md). C-3 remains `[~]` (≠ `[x]`). **≠** DefId / Call(ModuleId) IR / full MirOp / exception.
+`ModuleId` + `MirModIndex::build/require` + `collect_module_names_from_paths` — dense module-name→id table; duplicate name / unknown require / same-stem different path → **MIR008**. `MirModule.module_names` populated from `ModuleGraph.order` stems (empty OK). Hooked after nil-branch floor on unify + codegen. Census: [`c-3h-mir-mod-index-census`](../census/README.md). C-3 remains `[~]` (≠ `[x]`). **≠** DefId / Call(ModuleId) IR / full MirOp / exception.
 
 ### C-4a (done · git rev pin + locked git install)
 
-Manifest git dependencies require explicit `rev` (missing → **P043**); never default to `main`. Under `SYX_INSTALL_LOCKED`, Git pins are read from `syx.lock` (URL/rev; missing/wrong → **P014**); lock bytes not rewritten. Census: [`c-4a-git-rev-pin-census`](../census/c-4a-git-rev-pin-census.md). **≠** default-locked install / publish-requires-lock / lock v16 trim (C-4b+).
+Manifest git dependencies require explicit `rev` (missing → **P043**); never default to `main`. Under `SYX_INSTALL_LOCKED`, Git pins are read from `syx.lock` (URL/rev; missing/wrong → **P014**); lock bytes not rewritten. Census: [`c-4a-git-rev-pin-census`](../census/README.md). **≠** default-locked install / publish-requires-lock / lock v16 trim (C-4b+).
 
 ### C-4b (done · locked-by-default install)
 
-`InstallMode::{Auto,Locked,Unlocked}`: Auto locks when `syx.lock` exists (no rewrite); first install without lock still writes; `syx update` / `add` use Unlocked; CLI `syx install --locked` requires lock (**P014**). Env `SYX_INSTALL_LOCKED` / `SYX_INSTALL_UNLOCKED` retained. Census: [`c-4b-locked-default-census`](../census/c-4b-locked-default-census.md). **≠** publish-requires-lock / lock v16 trim / path content hash (C-4c+).
+`InstallMode::{Auto,Locked,Unlocked}`: Auto locks when `syx.lock` exists (no rewrite); first install without lock still writes; `syx update` / `add` use Unlocked; CLI `syx install --locked` requires lock (**P014**). Env `SYX_INSTALL_LOCKED` / `SYX_INSTALL_UNLOCKED` retained. Census: [`c-4b-locked-default-census`](../census/README.md). **≠** publish-requires-lock / lock v16 trim / path content hash (C-4c+).
 
 ### C-4c (done · publish requires usable lock)
 
-`require_publish_lock` / `publish_package`: missing `syx.lock` → **P014** (C-4c); present → `enforce_lock_v16`. CLI `syx publish --dry-run` uses the same gate. Empty `packages` OK for zero-dep libs after install. Census: [`c-4c-publish-lock-census`](../census/c-4c-publish-lock-census.md). **≠** lock v16 field trim / path content hash (C-4d+).
+`require_publish_lock` / `publish_package`: missing `syx.lock` → **P014** (C-4c); present → `enforce_lock_v16`. CLI `syx publish --dry-run` uses the same gate. Empty `packages` OK for zero-dep libs after install. Census: [`c-4c-publish-lock-census`](../census/README.md). **≠** lock v16 field trim / path content hash (C-4d+).
 
 ### C-4d (done · lock v16 infra trim)
 
-`graph_to_lockfile` no longer stamps CDN/farm/billing/marketplace env snapshots (or hard-coded phase8 CDN regions) into fresh `syx.lock`. Schema + `enforce_lock_v12…v16` retained for old/manual locks. Runtime CDN still reads process env. Census: [`c-4d-lock-trim-census`](../census/c-4d-lock-trim-census.md). **≠** path content hash / delete SyxLockfile fields (C-4e+).
+`graph_to_lockfile` no longer stamps CDN/farm/billing/marketplace env snapshots (or hard-coded phase8 CDN regions) into fresh `syx.lock`. Schema + `enforce_lock_v12…v16` retained for old/manual locks. Runtime CDN still reads process env. Census: [`c-4d-lock-trim-census`](../census/README.md). **≠** path content hash / delete SyxLockfile fields (C-4e+).
 
 ### C-4e (done · path content hash)
 
-`PackageSource::Path` records `checksum = sha256:…` (directory tree hash; excludes `.git` / `target` / `.DS_Store`). Unlocked resolve writes it; Locked install recomputes and fail-closes on missing/mismatch (**P014**, C-4e). Legacy path locks without checksum require Unlocked rewrite. Census: [`c-4e-path-content-hash-census`](../census/c-4e-path-content-hash-census.md). **C-4 `[x]`**. **≠** manifest↔lock full reconcile / delete SyxLockfile infra fields / C-5.
+`PackageSource::Path` records `checksum = sha256:…` (directory tree hash; excludes `.git` / `target` / `.DS_Store`). Unlocked resolve writes it; Locked install recomputes and fail-closes on missing/mismatch (**P014**, C-4e). Legacy path locks without checksum require Unlocked rewrite. Census: [`c-4e-path-content-hash-census`](../census/README.md). **C-4 `[x]`**. **≠** manifest↔lock full reconcile / delete SyxLockfile infra fields / C-5.
 
 ### C-5a (done · threat-model honesty)
 
-ADR [`macro-embed-threat-model.md`](../adr/macro-embed-threat-model.md): macro = reexec-only; embed flags = soft/HTTP deny; permission-sandbox = HostFn S024; `*SECCOMP*` = label/probe. Public claim scrub + `macro_sandbox_mode` → `seccomp-label-unwired`. Census: [`c-5a-threat-model-census`](../census/c-5a-threat-model-census.md). C-5 remains `[~]` (≠ `[x]`). **≠** embed wasm fail-closed / real seccomp (C-5b+).
+ADR [`macro-embed-threat-model.md`](../adr/macro-embed-threat-model.md): macro = reexec-only; embed flags = soft/HTTP deny; permission-sandbox = HostFn S024; `*SECCOMP*` = label/probe. Public claim scrub + `macro_sandbox_mode` → `seccomp-label-unwired`. Census: [`c-5a-threat-model-census`](../census/README.md). C-5 remains `[~]` (≠ `[x]`). **≠** embed wasm fail-closed / real seccomp (C-5b+).
 
 ### C-5b (done · embed wasm fail-closed)
 
-When `SYX_EMBED_WASM_SANDBOX=1`, `syx_embed_v2_run` returns **null** if wasmtime is unavailable or the wasm run fails — **no** silent `compile_and_run_embedded` fallback. Unset env keeps default in-process. Census: [`c-5b-embed-wasm-fail-closed-census`](../census/c-5b-embed-wasm-fail-closed-census.md). C-5 remains `[~]`. **≠** timeout wire / real seccomp (C-5c+) / C-5 `[x]`.
+When `SYX_EMBED_WASM_SANDBOX=1`, `syx_embed_v2_run` returns **null** if wasmtime is unavailable or the wasm run fails — **no** silent `compile_and_run_embedded` fallback. Unset env keeps default in-process. Census: [`c-5b-embed-wasm-fail-closed-census`](../census/README.md). C-5 remains `[~]`. **≠** timeout wire / real seccomp (C-5c+) / C-5 `[x]`.
 
 ### C-5c-1 (done · embed/macro timeout hard wire)
 
-Opt-in hard wall: `SYX_EMBED_TIMEOUT_MS` (env wins) ∪ CLI `--embed-timeout-ms`; in-process `recv_timeout` → null; wasmtime subprocess **killed** on deadline → null; `SYX_MACRO_TIMEOUT_MS` kills expand child → **M040**. Unset = no wall-clock default. Census: [`c-5c-1-embed-macro-timeout-census`](../census/c-5c-1-embed-macro-timeout-census.md). C-5 remains `[~]`. **≠** seccomp BPF / RSS hard kill / C-5 `[x]` (→ **C-5c-2**).
+Opt-in hard wall: `SYX_EMBED_TIMEOUT_MS` (env wins) ∪ CLI `--embed-timeout-ms`; in-process `recv_timeout` → null; wasmtime subprocess **killed** on deadline → null; `SYX_MACRO_TIMEOUT_MS` kills expand child → **M040**. Unset = no wall-clock default. Census: [`c-5c-1-embed-macro-timeout-census`](../census/README.md). C-5 remains `[~]`. **≠** seccomp BPF / RSS hard kill / C-5 `[x]` (→ **C-5c-2**).
 
 ### C-5c-2 (done · Linux seccomp net-deny wire)
 
-Opt-in `SYX_MACRO_SECCOMP` / `SYX_EMBED_SECCOMP`: Linux installs **net-deny seccomp-BPF** (deny socket/connect/bind/listen; default-allow) in macro child / embed worker thread; mode `seccomp-netdeny-wired`. Non-Linux + env → **M040** / **null**. Census: [`c-5c-2-seccomp-wire-census`](../census/c-5c-2-seccomp-wire-census.md). C-5 remains `[~]`. **≠** Job Object / full filter GA / RSS hard kill / C-5 `[x]` (→ **C-5d**).
+Opt-in `SYX_MACRO_SECCOMP` / `SYX_EMBED_SECCOMP`: Linux installs **net-deny seccomp-BPF** (deny socket/connect/bind/listen; default-allow) in macro child / embed worker thread; mode `seccomp-netdeny-wired`. Non-Linux + env → **M040** / **null**. Census: [`c-5c-2-seccomp-wire-census`](../census/README.md). C-5 remains `[~]`. **≠** Job Object / full filter GA / RSS hard kill / C-5 `[x]` (→ **C-5d**).
 
 ### C-5d (done · embed/macro RSS hard wall)
 
-Opt-in `SYX_EMBED_RSS_MB` / `SYX_MACRO_RSS_MB`: Linux **`prlimit(RLIMIT_AS)`** in embed worker / wasmtime child pid / macro child; over-AS → **null** / **M040**. Non-Linux + env → fail-closed. MEMORY: env∪CLI stdout-sum soft (honest). Census: [`c-5d-embed-rss-hard-census`](../census/c-5d-embed-rss-hard-census.md). C-5 remains `[~]`. **≠** Job Object / macOS sandbox / C-5 `[x]` (→ **C-5e**).
+Opt-in `SYX_EMBED_RSS_MB` / `SYX_MACRO_RSS_MB`: Linux **`prlimit(RLIMIT_AS)`** in embed worker / wasmtime child pid / macro child; over-AS → **null** / **M040**. Non-Linux + env → fail-closed. MEMORY: env∪CLI stdout-sum soft (honest). Census: [`c-5d-embed-rss-hard-census`](../census/README.md). C-5 remains `[~]`. **≠** Job Object / macOS sandbox / C-5 `[x]` (→ **C-5e**).
 
 ### C-5e (done · Windows Job Object thin gate)
 
-Same `SYX_*_RSS_MB` env: **Windows** Job Object **`PROCESS_MEMORY_LIMIT`** on embed worker / wasmtime child / macro child (parent assign); over-limit → **null** / **M040**. Linux keeps prlimit. macOS/other + env → fail-closed. Census: [`c-5e-jobobject-thin-census`](../census/c-5e-jobobject-thin-census.md). C-5 remains `[~]`. **≠** full Job Object GA / macOS sandbox / C-5 `[x]` (→ **C-5f**).
+Same `SYX_*_RSS_MB` env: **Windows** Job Object **`PROCESS_MEMORY_LIMIT`** on embed worker / wasmtime child / macro child (parent assign); over-limit → **null** / **M040**. Linux keeps prlimit. macOS/other + env → fail-closed. Census: [`c-5e-jobobject-thin-census`](../census/README.md). C-5 remains `[~]`. **≠** full Job Object GA / macOS sandbox / C-5 `[x]` (→ **C-5f**).
 
 ### C-5f (done · macOS Seatbelt net-deny thin gate)
 
-Opt-in `SYX_EMBED_MACOS_SANDBOX` / `SYX_MACRO_MACOS_SANDBOX`: **macOS** Seatbelt **net-deny** via `sandbox_init(SANDBOX_NAMED, "no-network")` in macro child and `sandbox-exec -n no-network` around wasmtime; **in-process embed → null**. Non-macOS + env → **null** / **M040**. Census: [`c-5f-macos-sandbox-thin-census`](../census/c-5f-macos-sandbox-thin-census.md). C-5 remains `[~]`. **≠** App Sandbox GA / full filter / C-5 `[x]` (→ **C-5g**).
+Opt-in `SYX_EMBED_MACOS_SANDBOX` / `SYX_MACRO_MACOS_SANDBOX`: **macOS** Seatbelt **net-deny** via `sandbox_init(SANDBOX_NAMED, "no-network")` in macro child and `sandbox-exec -n no-network` around wasmtime; **in-process embed → null**. Non-macOS + env → **null** / **M040**. Census: [`c-5f-macos-sandbox-thin-census`](../census/README.md). C-5 remains `[~]`. **≠** App Sandbox GA / full filter / C-5 `[x]` (→ **C-5g**).
 
 ### C-5g (done · Linux seccomp allowlist thin gate)
 
-Opt-in `SYX_EMBED_SECCOMP_ALLOWLIST` / `SYX_MACRO_SECCOMP_ALLOWLIST`: **Linux** **default-deny** BPF allowlist (v11 base + futex/brk/openat/close/mprotect[/arch_prctl]); mutually exclusive with `SYX_*_SECCOMP` net-deny. Non-Linux + env → **null** / **M040**. Census: [`c-5g-seccomp-allowlist-census`](../census/c-5g-seccomp-allowlist-census.md). C-5 remains `[~]`. **≠** full syscall GA / permission-sandbox default-on / C-5 `[x]` (→ **C-5h**).
+Opt-in `SYX_EMBED_SECCOMP_ALLOWLIST` / `SYX_MACRO_SECCOMP_ALLOWLIST`: **Linux** **default-deny** BPF allowlist (v11 base + futex/brk/openat/close/mprotect[/arch_prctl]); mutually exclusive with `SYX_*_SECCOMP` net-deny. Non-Linux + env → **null** / **M040**. Census: [`c-5g-seccomp-allowlist-census`](../census/README.md). C-5 remains `[~]`. **≠** full syscall GA / permission-sandbox default-on / C-5 `[x]` (→ **C-5h**).
 
 ### C-6a (done · version SSOT align)
 
-Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/c-6a-version-ssot-census.md).
+Public semver SSOT = root `Cargo.toml` `[workspace.package].version` (currently **0.4.0**). Aligned: docs/books/`current.md` banners, `plan/01`, three capability TOML `syx_version` (+ generated), credibility nails, R-49/S2-07 probes. Census: [`c-6a-version-ssot-census`](../census/README.md).
 
 ### C-6b (done · gen-from-Cargo)
 
-`gen_capabilities.py` / `gen_ir_capabilities.py` parse Cargo `V`, force `meta.syx_version = V`, rewrite stale TOML on write, `--check` fail-closed when TOML≠`V` or outputs stale; IR `"117.0"` fallback removed. Shared helper [`scripts/syx_cargo_ssot.py`](../../scripts/syx_cargo_ssot.py). Census: [`c-6b-gen-from-cargo-census`](../census/c-6b-gen-from-cargo-census.md). **C-6 `[x]`**.
+`gen_capabilities.py` / `gen_ir_capabilities.py` parse Cargo `V`, force `meta.syx_version = V`, rewrite stale TOML on write, `--check` fail-closed when TOML≠`V` or outputs stale; IR `"117.0"` fallback removed. Shared helper [`scripts/syx_cargo_ssot.py`](../../scripts/syx_cargo_ssot.py). Census: [`c-6b-gen-from-cargo-census`](../census/README.md). **C-6 `[x]`**.
 
 ### C-7a (done · fuzz-signal honesty)
 
-`syx_smoke` consumes UTF-8 via `syx-lexer::Lexer::scan_all` (invalid UTF-8 early-return; no deliberate panic). Required CI job **`fuzz-smoke`**: `cargo +nightly fuzz run syx_smoke -- -runs=1`. UsageGuide CI **met** aligns with yaml. Census: [`c-7a-fuzz-honesty-census`](../census/c-7a-fuzz-honesty-census.md).
+`syx_smoke` consumes UTF-8 via `syx-lexer::Lexer::scan_all` (invalid UTF-8 early-return; no deliberate panic). Required CI job **`fuzz-smoke`**: `cargo +nightly fuzz run syx_smoke -- -runs=1`. UsageGuide CI **met** aligns with yaml. Census: [`c-7a-fuzz-honesty-census`](../census/README.md).
 
 ### C-7b (done · soft-step fail-closed)
 
-Soft-job steps that previously swallowed test failures with `exit 0` now propagate `exit "$ec"` / `exit 1` (gui · jit · extended · native host-shake/differential · browser-e2e · windows plugin fail · book rate≠100). Jobs stay `continue-on-error`. Whitelist keep `exit 0`: empty plugin list · missing book JSON · domain/property defer notice. Census: [`c-7b-soft-exit0-census`](../census/c-7b-soft-exit0-census.md).
+Soft-job steps that previously swallowed test failures with `exit 0` now propagate `exit "$ec"` / `exit 1` (gui · jit · extended · native host-shake/differential · browser-e2e · windows plugin fail · book rate≠100). Jobs stay `continue-on-error`. Whitelist keep `exit 0`: empty plugin list · missing book JSON · domain/property defer notice. Census: [`c-7b-soft-exit0-census`](../census/README.md).
 
 ### C-7c (done · count-gate align)
 
-SSOT = `scripts/audit_behavioral_tests.sh` defaults **2600 / 1700** (anti-delete only ≠ maturity KPI). Aligned: CI lint · nightly · docs/books README · implementation-status · ADR charter · site about. Census: [`c-7c-count-gate-census`](../census/c-7c-count-gate-census.md). C-7 remains `[~]` (≠ `[x]`). **≠** scaffold/multi-fuzz/soft→required (C-7c+ park).
+SSOT = `scripts/audit_behavioral_tests.sh` defaults **3600 / 1700** (anti-delete only ≠ maturity KPI). Aligned: CI lint · nightly · docs/books README · implementation-status · ADR charter · site about. Census: [`c-7c-count-gate-census`](../census/README.md). C-7 remains `[~]` (≠ `[x]`). **≠** scaffold/multi-fuzz/soft→required (C-7c+ park).
 
 ### C-8a (done · Ch15 implicit-super MD honesty)
 
-Ch15 en+zh: omitting `super.init` = **U-38 inherited field defaults ≠ CallSuper**; true implicit `CallSuper` marked **not implemented**. Lang honesty nails + census [`c-8a-ch15-implicit-super-md-census`](../census/c-8a-ch15-implicit-super-md-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** implement CallSuper / formatter `--allow-lossy` (C-8b).
+Ch15 en+zh: omitting `super.init` = **U-38 inherited field defaults ≠ CallSuper**; true implicit `CallSuper` marked **not implemented**. Lang honesty nails + census [`c-8a-ch15-implicit-super-md-census`](../census/README.md). C-8 remains `[~]` (≠ `[x]`). **≠** implement CallSuper / formatter `--allow-lossy` (C-8b).
 
 ### C-8b (done · formatter refuse-lossy)
 
-Default `syx format` / `--check` / LSP: CST001 → **`F003`** refuse (no silent AST comment-dropping write). Explicit CLI `--allow-lossy` restores CST001→AST auto. LSP hard `allow_lossy=false`. Census [`c-8b-fmt-refuse-lossy-census`](../census/c-8b-fmt-refuse-lossy-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** CST expand / lossless GA / book↔parser fork list (C-8c).
+Default `syx format` / `--check` / LSP: CST001 → **`F003`** refuse (no silent AST comment-dropping write). Explicit CLI `--allow-lossy` restores CST001→AST auto. LSP hard `allow_lossy=false`. Census [`c-8b-fmt-refuse-lossy-census`](../census/README.md). C-8 remains `[~]` (≠ `[x]`). **≠** CST expand / lossless GA / book↔parser fork list (C-8c).
 
 ### C-8c (done · book↔parser fork inventory)
 
-Live fork ledger ≥20 rows with closed classes (`parked_honest` · `book_ahead` · `legacy_accept` · `doc_debt`). Census [`c-8c-book-parser-fork-census`](../census/c-8c-book-parser-fork-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** fork converged · parser surface changes · CST lossless (C-8d+ park).
+Live fork ledger ≥20 rows with closed classes (`parked_honest` · `book_ahead` · `legacy_accept` · `doc_debt`). Census [`c-8c-book-parser-fork-census`](../census/README.md). C-8 remains `[~]` (≠ `[x]`). **≠** fork converged · parser surface changes · CST lossless (C-8d+ park).
 
 ### C-8d (done · book MD honesty)
 
-Cleared inventory `doc_debt`/`book_ahead` (F20–F23) en+zh: labeled break Partial honesty; convenience/required Not; mutating Partial; typed-throws ≠ GA. Census [`c-8d-book-md-honesty-census`](../census/c-8d-book-md-honesty-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** F18/F19 legacy parser remove · CST lossless (C-8e+ park).
+Cleared inventory `doc_debt`/`book_ahead` (F20–F23) en+zh: labeled break Partial honesty; convenience/required Not; mutating Partial; typed-throws ≠ GA. Census [`c-8d-book-md-honesty-census`](../census/README.md). C-8 remains `[~]` (≠ `[x]`). **≠** F18/F19 legacy parser remove · CST lossless (C-8e+ park).
 
 ### C-8e (done · legacy compat notes)
 
-Ch10 en+zh **Compatibility (C-8e)** for F18 bare fields + F19 unmarked mutating (ADR one-cycle; ≠ remove parser accept). Inventory F18/F19 → `parked_honest`. Census [`c-8e-legacy-compat-notes-census`](../census/c-8e-legacy-compat-notes-census.md). C-8 remains `[~]` (≠ `[x]`). **≠** CST lossless GA · remove legacy parser (C-8f+ park).
+Ch10 en+zh **Compatibility (C-8e)** for F18 bare fields + F19 unmarked mutating (ADR one-cycle; ≠ remove parser accept). Inventory F18/F19 → `parked_honest`. Census [`c-8e-legacy-compat-notes-census`](../census/README.md). C-8 remains `[~]` (≠ `[x]`). **≠** CST lossless GA · remove legacy parser (C-8f+ park).
 
 ### C-8f (done · CST residual note)
 
-UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **lossless GA** / full-language trivia formatter; lossless reindent only inside CST subset. Census [`c-8f-cst-residual-note-census`](../census/c-8f-cst-residual-note-census.md). C-8 remains `[~]` (≠ `[x]`). Soft park: CST lossless implementation · CallSuper · remove parser legacy.
+UsageGuide en+zh **Honesty (C-8f):** refuse-lossy (`F003`) **≠** format **lossless GA** / full-language trivia formatter; lossless reindent only inside CST subset. Census [`c-8f-cst-residual-note-census`](../census/README.md). C-8 remains `[~]` (≠ `[x]`). Soft park: CST lossless implementation · CallSuper · remove parser legacy.
 
 ## Next
 

@@ -32,5 +32,5 @@ Provide `syx migrate` in a later window if rewrite volume warrants it; not requi
 - [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) · S1-01
 - [`books/language-guide/10-structures-and-classes.md`](../../books/language-guide/10-structures-and-classes.md)
 - Analysis: [`plan/ProjectAnalysisAndImprovementPlan.zh-CN.md`](../../plan/ProjectAnalysisAndImprovementPlan.zh-CN.md) §1.1
-- Live fork inventory (C-8c): [`docs/census/c-8c-book-parser-fork-census.md`](../census/c-8c-book-parser-fork-census.md)
-- Ch10 Compatibility notes (C-8e): [`books/language-guide/10-structures-and-classes.md`](../../books/language-guide/10-structures-and-classes.md) · census [`c-8e-legacy-compat-notes-census`](../census/c-8e-legacy-compat-notes-census.md)
+- Live fork inventory (C-8c): [`docs/census/c-8c-book-parser-fork-census.md`](../census/README.md)
+- Ch10 Compatibility notes (C-8e): [`books/language-guide/10-structures-and-classes.md`](../../books/language-guide/10-structures-and-classes.md) · census [`c-8e-legacy-compat-notes-census`](../census/README.md)

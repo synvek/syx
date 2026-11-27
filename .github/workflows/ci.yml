@@ -94,7 +94,7 @@ jobs:
 
       - name: Behavioral test count floor
         # LSP floor tracks post credibility-diet real nails (~1788); anti-delete only.
-        run: bash scripts/audit_behavioral_tests.sh --min-driver 2600 --min-lsp 1700
+        run: bash scripts/audit_behavioral_tests.sh --min-driver 3600 --min-lsp 1700
   lsp:
     name: Language server
     runs-on: ubuntu-latest
@@ -272,8 +272,8 @@ jobs:
       - name: Driver data suite
         run: cargo test -p syx-driver --test data -- --test-threads=1
 
-  test-driver-credibility:
-    name: Core credibility
+  test-driver-mir-floor:
+    name: MIR invariants (mir_floor)
     # Hard again after plan/01+02 SSOT + portable time -p + r26 release syx (f2317a0 green).
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -287,7 +287,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ripgrep time
-      # Prelude embeds are gitignored; credibility nails assert non-trivial asset bytes.
+      # Prelude embeds are gitignored; mir_floor / lang may assert non-trivial asset bytes.
       - name: Regen prelude embed for this runner rustc
         run: bash scripts/gen_prelude_snapshot.sh
       - name: Verify prelude embeds are non-trivial
@@ -304,48 +304,48 @@ jobs:
               exit 1
             fi
           done
-      - name: Driver credibility suite
+      - name: MIR floor invariant suite
         run: |
           set -o pipefail
-          cargo test -p syx-driver --test credibility -- --test-threads=1 2>&1 \
-            | tee /tmp/syx-credibility.out
-      - name: Summarize credibility failures
+          cargo test -p syx-driver --test mir_floor -- --test-threads=1 2>&1 \
+            | tee /tmp/syx-mir-floor.out
+      - name: Summarize mir_floor failures
         if: failure()
         run: |
           {
-            echo "## Core credibility failures"
+            echo "## MIR floor failures"
             echo '```'
             rg -n 'FAILED|failures:|panicked|census script failed|assertion' \
-              /tmp/syx-credibility.out | tail -120 || true
+              /tmp/syx-mir-floor.out | tail -120 || true
             echo '```'
             echo
             echo "### failure list"
             echo '```'
-            rg -n '^failures:$' -A40 /tmp/syx-credibility.out | tail -50 || true
+            rg -n '^failures:$' -A40 /tmp/syx-mir-floor.out | tail -50 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           # GitHub caps ~10 annotations/step — pack names + first panics into few lines.
-          rg -o 'test ([a-z0-9_:]+) \.\.\. FAILED' -r '$1' /tmp/syx-credibility.out \
-            | sort -u > /tmp/syx-credibility-fails.txt || true
-          if [ -s /tmp/syx-credibility-fails.txt ]; then
+          rg -o 'test ([a-z0-9_:]+) \.\.\. FAILED' -r '$1' /tmp/syx-mir-floor.out \
+            | sort -u > /tmp/syx-mir-floor-fails.txt || true
+          if [ -s /tmp/syx-mir-floor-fails.txt ]; then
             echo "### failed tests" >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
-            cat /tmp/syx-credibility-fails.txt >> "$GITHUB_STEP_SUMMARY"
+            cat /tmp/syx-mir-floor-fails.txt >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
-            fails=$(tr '\n' ' ' < /tmp/syx-credibility-fails.txt | head -c 2000)
-            echo "::error title=credibility-failed-tests::${fails}"
+            fails=$(tr '\n' ' ' < /tmp/syx-mir-floor-fails.txt | head -c 2000)
+            echo "::error title=mir-floor-failed-tests::${fails}"
           fi
           rg -n 'panicked at|census script failed|assertion failed|No such file' \
-            /tmp/syx-credibility.out | head -8 | while IFS= read -r line; do
-            echo "::error title=credibility-panic::${line:0:200}"
+            /tmp/syx-mir-floor.out | head -8 | while IFS= read -r line; do
+            echo "::error title=mir-floor-panic::${line:0:200}"
           done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: core-credibility-log
+          name: mir-floor-log
           path: |
-            /tmp/syx-credibility.out
-            /tmp/syx-credibility-fails.txt
+            /tmp/syx-mir-floor.out
+            /tmp/syx-mir-floor-fails.txt
           retention-days: 7
           if-no-files-found: warn
 
@@ -356,11 +356,11 @@ jobs:
     needs:
       - test-driver-data
       - test-driver-lang
-      - test-driver-credibility
+      - test-driver-mir-floor
       - test-driver-concurrency
     steps:
       - name: Required Core driver suites passed
-        run: echo "data+lang+credibility+concurrency green"
+        run: echo "data+lang+mir_floor+concurrency green"
 
   # ---------------------------------------------------------------------------
   # Required: WASM / browser compiler artifacts

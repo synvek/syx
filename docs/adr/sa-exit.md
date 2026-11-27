@@ -2,14 +2,14 @@
 
 **Status:** Accepted  
 **Date:** 2026-11-09  
-**Context:** SA-0…SA-5 scoped exits are landed (`plan/01` · `plan/02`). SA-6 exit hinge is census KPI green ([`sa-6-exit-census.md`](../census/sa-6-exit-census.md) · [`scripts/sa_6_exit_census.sh`](../../scripts/sa_6_exit_census.sh)) plus this ADR. Aligned with [stage4-exit](stage4-exit.md) honesty (scoped claim + residual list; ≠ boiling the ocean).
+**Context:** SA-0…SA-5 scoped exits are landed (`plan/01` · `plan/02`). SA-6 exit hinge is census KPI green ([`sa-6-exit-census.md`](../census/README.md) · [`scripts/sa_6_exit_census.sh`](../../scripts/sa_6_exit_census.sh)) plus this ADR. Aligned with [stage4-exit](stage4-exit.md) honesty (scoped claim + residual list; ≠ boiling the ocean).
 
 ## Decision
 
 1. **SA alignment period exits.** `plan/01` and `plan/02` mark **SA-6** and the SA track as **`[x]` 退出** as of this ADR.
 2. **Evidence (In):**
    - SA-0…SA-5 exit hinges `[x]` (charter · prelude · language · module remap · System API/host · docs/doctest)
-   - **SA-6-01** `[x]` scoped — [`sa-6-exit-census.md`](../census/sa-6-exit-census.md):
+   - **SA-6-01** `[x]` scoped — [`sa-6-exit-census.md`](../census/README.md):
      - prelude / importable SSOT match
      - old import lines = 0 (packages / examples / books)
      - public `__syx_*` (non-internal) = 0
@@ -42,5 +42,5 @@
 ## References
 
 - Charter: [stdlib-swift-alignment](stdlib-swift-alignment.md)
-- Census: [sa-6-exit-census](../census/sa-6-exit-census.md) · [sa-5-docs-tools](../census/sa-5-docs-tools.md)
+- Census: [sa-6-exit-census](../census/README.md) · [sa-5-docs-tools](../census/README.md)
 - Precedent: [stage4-exit](stage4-exit.md)

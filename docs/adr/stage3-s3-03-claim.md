@@ -4,7 +4,7 @@
 **Date:** 2026-11-08 · **Honesty note:** 2026-11-12  
 **Context:** After [S3-I54 prelude embed](stage3-s3-03-prelude-embed.md), construct hinges I48–I54 are landed and measured hello startup axes are under the S3-03 target: `hello_cold_s` ≈ **0.08**, `hello_prelude_hit_s` ≈ **0.08**, `hello_warm_s` ≈ **0.00** (all &lt; **0.15**); `hello_nostd_s` ≈ 0.00. This dedicated window flips the plan checkbox only — aligned with S3-01/S3-02 scoped claim. It does **not** exit Stage-3 or open S3-04 construction.
 
-> **Superseded by R-40 (clean-dir measure):** current empty-cache `syx run examples/hello.sy` / `fib(30)` cold wall ≈ **2.5–3.1 s** even with prelude embed tag match ([`r-40-coldstart-census`](../census/r-40-coldstart-census.md)). The historical &lt;**0.15** numbers below remain as the **scoped S3-I55 claim record**; they must **not** be cited as live product cold-start KPIs.
+> **Superseded by R-40 (clean-dir measure):** current empty-cache `syx run examples/hello.sy` / `fib(30)` cold wall ≈ **2.5–3.1 s** even with prelude embed tag match ([`r-40-coldstart-census`](../census/README.md)). The historical &lt;**0.15** numbers below remain as the **scoped S3-I55 claim record**; they must **not** be cited as live product cold-start KPIs.
 
 ## Evidence
 
@@ -44,6 +44,6 @@ Standard-library precompile/cache path makes **hello** cold / warm / prelude-hit
 
 - [stage3-s3-03-open](stage3-s3-03-open.md) · S3-I48
 - [stage3-s3-03-prelude-embed](stage3-s3-03-prelude-embed.md) · S3-I54
-- [stage3-stdlib-cache-census](../census/stage3-stdlib-cache-census.md)
-- [r-40-coldstart-census](../census/r-40-coldstart-census.md) · superseding clean-dir wall clock
+- [stage3-stdlib-cache-census](../census/README.md)
+- [r-40-coldstart-census](../census/README.md) · superseding clean-dir wall clock
 - [plan/02](../../plan/02-improvement-roadmap.md) S3-03

@@ -38,12 +38,12 @@ R-42 `[x]` = **charter + cluster census landed** — **not** 「simd Object 清�
 
 ## Consequences
 
-- Census: [`r-42-simd-object-census`](../census/r-42-simd-object-census.md).  
+- Census: [`r-42-simd-object-census`](../census/README.md).  
 - Default next = **R-43** `polymorphic_base_ref`（ledger）.  
 - Future simd façade work must cite this ADR’s §允许动刀.
 
 ## References
 
 - [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) R-42  
-- [`r-27-collections-object-census`](../census/r-27-collections-object-census.md) · simd parked  
-- [`r-41-orderedset-census`](../census/r-41-orderedset-census.md) · explicit slice left simd to R-42  
+- [`r-27-collections-object-census`](../census/README.md) · simd parked  
+- [`r-41-orderedset-census`](../census/README.md) · explicit slice left simd to R-42  

@@ -12,6 +12,7 @@ cargo test -p syx-driver --test <harness> -- --test-threads=1
 |--------|------|------------------|
 | `evergreen` | `evergreen/` | Smoke, parity, registry, `build_syx*`, fixtures, plugin load |
 | `lang` | `lang/` | Borrow / move, protocols, inheritance, operators, model v1, MIR pilot |
+| `mir_floor` | `mir_floor/` | MIR stack-floor / CFG invariants (C-9c; former credibility c3*) |
 | `concurrency` | `concurrency/` | Tasks, actors, channels, pools, mutex/semaphore, race/chaos |
 | `stdlib` | `stdlib/` | Collections, string/time/JSON/HTTP/SQL/TCP tools, leak live-counts, error facades |
 | `observability` | `observability/` | Structured logging, trace/span, metrics, profiler |
@@ -39,7 +40,8 @@ cargo test -p syx-driver --test <harness> -- --test-threads=1
 - Do **not** add new top-level `m2_*` / `m3_*` / `m4_*` / `ec_m*` crates.
 - Do **not** reintroduce `*_closeout.rs` or numbered ADR charter pins.
 - Architecture SSOT: [`docs/adr/architecture-decisions.md`](../../../docs/adr/architecture-decisions.md).
-- Behavioral count floor: [`scripts/audit_behavioral_tests.sh`](../../../scripts/audit_behavioral_tests.sh).
+- Behavioral count floor: [`scripts/audit_behavioral_tests.sh`](../../../scripts/audit_behavioral_tests.sh) (SSOT **3600/1700**; excludes maintainer meta).
+- Former `credibility/` meta harness relocated to `plan/harness/credibility-meta/` (C-9). Contributors use `lang` + `mir_floor`.
 
 ## Old name → harness (short)
 
@@ -55,3 +57,4 @@ cargo test -p syx-driver --test <harness> -- --test-threads=1
 | `wasm_*.rs` / `native_*.rs` / `browser_*.rs` | `--test wasm` / `native` / `browser` |
 
 Meta inventory tests (`ec_m3_*`, thin `ec_m4_l/m/p/x`) were removed; use the domain harnesses above.
+Former `--test credibility` → `--test mir_floor` (invariants) + `plan/harness/credibility-meta` (maintainer-only).

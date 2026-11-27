@@ -49,4 +49,4 @@ Public claims must not describe macro re-exec or embed soft flags as **security 
 ## Related
 
 - Roadmap: [`plan/02-improvement-roadmap.md`](../../plan/02-improvement-roadmap.md) C-5 / C-5h  
-- Census: [`c-5h-permission-default-on-census`](../census/c-5h-permission-default-on-census.md)
+- Census: [`c-5h-permission-default-on-census`](../census/README.md)

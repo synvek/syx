@@ -67,7 +67,7 @@ jobs:
             -- --test-threads=1
       - name: Behavioral test count smoke floor (C-7c / C-10 — not release KPI)
         # SSOT = scripts/audit_behavioral_tests.sh defaults (= CI lint). Anti-delete only.
-        run: bash scripts/audit_behavioral_tests.sh --min-driver 2600 --min-lsp 1700
+        run: bash scripts/audit_behavioral_tests.sh --min-driver 3600 --min-lsp 1700
       - name: Fixture audit
         run: scripts/audit_test_fixtures.sh --check
       - name: examples/deps cross-module smoke
