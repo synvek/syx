@@ -215,6 +215,18 @@ mod mir_object_set_stack_floor;
 pub use mir_object_set_stack_floor::{
     verify_mir_object_set_stack_floor, verify_mir_object_set_stack_floor_functions,
 };
+mod mir_opaque_value_eq_stack_floor;
+pub use mir_opaque_value_eq_stack_floor::{
+    verify_mir_opaque_value_eq_stack_floor, verify_mir_opaque_value_eq_stack_floor_functions,
+};
+mod mir_store_global_stack_floor;
+pub use mir_store_global_stack_floor::{
+    verify_mir_store_global_stack_floor, verify_mir_store_global_stack_floor_functions,
+};
+mod mir_arr_sorted_stack_floor;
+pub use mir_arr_sorted_stack_floor::{
+    verify_mir_arr_sorted_stack_floor, verify_mir_arr_sorted_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

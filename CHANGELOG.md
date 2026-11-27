@@ -1,4 +1,7 @@
 ### SYX 0.4.0
+- feat: MIR ArrSorted stack-height floor → MIR064 (pilot∪ArrSorted; Δ=(1,1); proven height only; ≠ expand pilot/MIR004) (C-3bl; ≠ C-3 `[x]`)
+- feat: MIR StoreGlobal stack-height floor → MIR063 (pilot∪StoreGlobal; Δ=(1,0); proven height only; ≠ MIR012 slot OOB) (C-3bk; ≠ C-3 `[x]`)
+- feat: MIR OpaqueValueEq stack-height floor → MIR062 (pilot∪OpaqueValueEq; Δ=(2,1); proven height only; ≠ CallWitness semantics) (C-3bj; ≠ C-3 `[x]`)
 - feat: MIR ObjectSet stack-height floor → MIR061 (pilot∪ObjectSet; Δ=(3,1); proven height only; ≠ expand pilot/MIR004/CallIndirect) (C-3bi; ≠ C-3 `[x]`)
 - feat: MIR ArraySet stack-height floor → MIR060 (pilot∪ArraySet; Δ=(3,1); proven height only; ≠ expand pilot/MIR004/ObjectSet) (C-3bh; ≠ C-3 `[x]`)
 - feat: MIR ObjectGet stack-height floor → MIR059 (pilot∪ObjectGet; Δ=(2,1); proven height only; ≠ expand pilot/MIR004/ArraySet) (C-3bg; ≠ C-3 `[x]`)
