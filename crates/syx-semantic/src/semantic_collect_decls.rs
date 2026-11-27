@@ -528,6 +528,20 @@ impl SemanticAnalyzer {
                                     .map(|p| (p.external_label.clone(), p.name.clone()))
                                     .collect(),
                             );
+                            // C-0j: mangled method params for Member Unknown→ground sink.
+                            if type_params.is_empty() {
+                                self.function_params.insert(
+                                    method_name.clone(),
+                                    params
+                                        .iter()
+                                        .map(|p| {
+                                            p.ty.as_ref()
+                                                .map(type_expr_to_id)
+                                                .unwrap_or(TypeId::Unknown)
+                                        })
+                                        .collect(),
+                                );
+                            }
                             if !type_params.is_empty()
                                 && attrs.iter().any(|a| a.name.as_str() == "static")
                             {
@@ -700,6 +714,7 @@ impl SemanticAnalyzer {
                             name: method,
                             return_type,
                             params,
+                            type_params,
                             attrs,
                             ..
                         } = member
@@ -720,6 +735,20 @@ impl SemanticAnalyzer {
                                     .map(|p| (p.external_label.clone(), p.name.clone()))
                                     .collect(),
                             );
+                            // C-0j: mangled method params for Member Unknown→ground sink.
+                            if type_params.is_empty() {
+                                self.function_params.insert(
+                                    method_name.clone(),
+                                    params
+                                        .iter()
+                                        .map(|p| {
+                                            p.ty.as_ref()
+                                                .map(type_expr_to_id)
+                                                .unwrap_or(TypeId::Unknown)
+                                        })
+                                        .collect(),
+                                );
+                            }
                             self.function_return_types.insert(method_name, ret);
                         }
                         if let Decl::Init { params, .. } = member {

@@ -563,6 +563,60 @@ func main() { put(1) }
 }
 
 #[test]
+fn c0j_untyped_method_arg_int_s004() {
+    let code = compile_fail_code(
+        r#"
+struct S {
+    func take(_ n: Int) { }
+    func wrap(_ x) { self.take(x) }
+}
+func main() { S().wrap(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+struct S {
+    func take(_ n: Int) { }
+    func wrap(_ x) { self.take(x) }
+}
+func main() { S().wrap(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0j_literal_method_arg_still_ok() {
+    compile_ok(
+        r#"
+struct S {
+    func take(_ n: Int) { }
+}
+func main() { S().take(1) }
+"#,
+    );
+}
+
+#[test]
+fn c0j_any_method_arg_still_ok() {
+    compile_ok(
+        r#"
+struct S {
+    func take(_ n: Any) { }
+    func wrap(_ x) { self.take(x) }
+}
+func main() { S().wrap(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0a_any_accepts_missing_member_ok() {
     compile_ok(
         r#"

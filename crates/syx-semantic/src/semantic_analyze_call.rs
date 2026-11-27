@@ -1011,8 +1011,54 @@ impl SemanticAnalyzer {
                         *span,
                     )?;
                 } else {
-                    for arg in args {
-                        self.analyze_expr(&arg.value)?;
+                    let mangled = match &obj_ty {
+                        TypeId::Named(t) => Some(SmolStr::new(format!("{t}_{name}"))),
+                        _ => None,
+                    };
+                    let params = mangled
+                        .as_ref()
+                        .and_then(|m| self.function_params.get(m).cloned());
+                    if let Some(params) = params {
+                        for (i, arg) in args.iter().enumerate() {
+                            let raw = params.get(i);
+                            let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
+                            let found =
+                                self.analyze_expr_with_expected(&arg.value, expected)?;
+                            if let Some(param_ty) = expected {
+                                if matches!(param_ty, TypeId::MutReference(_))
+                                    && !self.is_explicit_mut_borrow(&arg.value)
+                                {
+                                    return Err(self.error_at(
+                                        format!(
+                                            "Type mismatch for '{name}': expected {}, found {}",
+                                            type_id_to_diag_name(param_ty),
+                                            type_id_to_diag_name(&found)
+                                        ),
+                                        expr_span(&arg.value),
+                                        "S004",
+                                    ));
+                                }
+                                // C-0j: method-arg Unknown→ground sink (≠ close soft arm / C-0a+).
+                                self.check_unknown_to_ground_sink(
+                                    param_ty,
+                                    &found,
+                                    &arg.value,
+                                    name.as_str(),
+                                    expr_span(&arg.value),
+                                )?;
+                                self.check_assignable_with_literal(
+                                    param_ty.clone(),
+                                    found,
+                                    name.as_str(),
+                                    Some(&arg.value),
+                                    *span,
+                                )?;
+                            }
+                        }
+                    } else {
+                        for arg in args {
+                            self.analyze_expr(&arg.value)?;
+                        }
                     }
                 }
                 if name.as_str() == "sorted" {
