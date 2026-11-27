@@ -3994,19 +3994,20 @@ pub fn host_fn_index(id: HostFnId) -> u32 {
     HostFnId::all().iter().position(|h| *h == id).unwrap_or(0) as u32
 }
 
-/// C-3ce pilot: known HostFn stack arity `(pop, push)` for absolute CallHost indices.
+/// C-3ce + C-3cg pilot: known HostFn stack arity `(pop, push)` for absolute CallHost indices.
 ///
 /// Returns `Some((pop, push))` only for a **pilot subset** whose pops match VM host
-/// implementations (`hosts.rs` / `stdlib_core_hosts.rs`). Unknown / non-pilot → `None`
-/// (floor abandon; ≠ red). Not a full HostFn arity GA / trim-remap SSOT.
+/// implementations (`hosts.rs` / `stdlib_core_hosts.rs` / http-impl). Unknown / non-pilot
+/// → `None` (floor abandon; ≠ red). Not a full HostFn arity GA / trim-remap SSOT.
 pub fn host_fn_arity(idx: u32) -> Option<(u32, u32)> {
     let id = HostFnId::all().get(idx as usize).copied()?;
     Some(match id {
         // Fmt* — pop1 push1 (stdlib_core_hosts)
         HostFnId::FmtPrint | HostFnId::FmtPrintLine | HostFnId::FmtDebug => (1, 1),
-        // Unary f64 math — pop1 push1
+        // Unary f64 math — pop1 push1 (C-3ce + C-3cg expand)
         HostFnId::MathFloatSin
         | HostFnId::MathFloatCos
+        | HostFnId::MathFloatTan
         | HostFnId::MathFloatSqrt
         | HostFnId::MathFloatFloor
         | HostFnId::MathFloatCeil
@@ -4014,17 +4015,41 @@ pub fn host_fn_arity(idx: u32) -> Option<(u32, u32)> {
         | HostFnId::MathFloatLog
         | HostFnId::MathFloatExp
         | HostFnId::MathFloatTrunc
-        | HostFnId::MathFloatAbs => (1, 1),
-        // Binary f64 — pop2 push1
-        HostFnId::MathFloatPow => (2, 1),
-        // File* — path-only pop1 push1
+        | HostFnId::MathFloatAbs
+        | HostFnId::MathFloatAsin
+        | HostFnId::MathFloatAcos
+        | HostFnId::MathFloatAtan => (1, 1),
+        // Binary f64 — pop2 push1 (C-3ce + C-3cg expand)
+        HostFnId::MathFloatPow | HostFnId::MathFloatAtan2 | HostFnId::MathFloatHypot => (2, 1),
+        // File* / Dir* — path-only pop1 push1
         HostFnId::FileRead
         | HostFnId::FileReadLines
         | HostFnId::FileExists
         | HostFnId::FileDelete
-        | HostFnId::FileStat => (1, 1),
-        // File* — path+content pop2 push1
-        HostFnId::FileWrite | HostFnId::FileAppend => (2, 1),
+        | HostFnId::FileStat
+        | HostFnId::DirCreate
+        | HostFnId::DirList
+        | HostFnId::DirExists => (1, 1),
+        // File* — two paths / path+content pop2 push1
+        HostFnId::FileWrite
+        | HostFnId::FileAppend
+        | HostFnId::FileCopy
+        | HostFnId::FileMove => (2, 1),
+        // Json* — pop1 push1
+        HostFnId::JsonEncode | HostFnId::JsonDecode => (1, 1),
+        // Regex*
+        HostFnId::RegexCompile => (1, 1),
+        HostFnId::RegexMatch => (2, 1),
+        // Hasher* (C-3cg; HasherNew (0,1) intentionally excluded)
+        HostFnId::HasherFinalize => (1, 1),
+        HostFnId::HasherCombine => (2, 1),
+        // Http* (C-3cg; Serve/Shutdown/RequestAsync excluded)
+        HostFnId::HttpGet
+        | HostFnId::HttpResponseJson
+        | HostFnId::HttpResponseStatus
+        | HostFnId::HttpResponseText
+        | HostFnId::HttpResponseOk => (1, 1),
+        HostFnId::HttpPost | HostFnId::HttpRequest => (2, 1),
         _ => return None,
     })
 }

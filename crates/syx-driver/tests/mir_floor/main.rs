@@ -60,6 +60,7 @@ mod c3bz_mir_call_super_stack_floor_contract;
 mod c3c_mir_fn_index_contract;
 mod c3ca_mir_call_closure_stack_floor_contract;
 mod mir_call_host_arity_floor_contract;
+mod mir_call_host_arity_pilot_expand_contract;
 mod mir_const_fn_index_floor_contract;
 mod mir_def_fn_consistency_floor_contract;
 mod c3d_mir_stack_floor_contract;
