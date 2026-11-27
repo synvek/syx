@@ -888,6 +888,8 @@ impl CodeGenerator {
             mir.module_names.len(),
             best_by_name.values().copied(),
         )?;
+        // C-3ch: BindResult mid-block successor floor (MIR083) after Def↔Fn.
+        syx_mir::verify_mir_bind_result_succ_floor_functions(best_by_name.values().copied())?;
         for func in best_by_name.values() {
             if !program.functions.iter().any(|f| f.name == func.name) {
                 program.functions.push(FunctionUnit {

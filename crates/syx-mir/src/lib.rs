@@ -300,6 +300,10 @@ mod mir_def_fn_consistency_floor;
 pub use mir_def_fn_consistency_floor::{
     verify_mir_def_fn_consistency_floor, verify_mir_def_fn_consistency_floor_functions,
 };
+mod mir_bind_result_succ_floor;
+pub use mir_bind_result_succ_floor::{
+    verify_mir_bind_result_succ_floor, verify_mir_bind_result_succ_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

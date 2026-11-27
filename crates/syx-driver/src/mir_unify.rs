@@ -882,6 +882,8 @@ pub fn build_unified_mir(
         mir.module_names.len(),
         mir.functions.iter(),
     )?;
+    // C-3ch: BindResult mid-block successor floor (MIR083) after Def↔Fn.
+    syx_mir::verify_mir_bind_result_succ_floor(&mir)?;
     Ok(mir)
 }
 
