@@ -372,14 +372,78 @@ pub(crate) fn collect_stdlib_extension_methods(
     set
 }
 
+/// C-3cc: named callees referenced by a MIR function (C-3p Call* family).
+fn mir_fn_named_callees(func: &MirFunction) -> Vec<SmolStr> {
+    let mut names = Vec::new();
+    let push_ops = |instructions: &[syx_mir::MirInstr], names: &mut Vec<SmolStr>| {
+        for ins in instructions {
+            match &ins.op {
+                MirOp::Call(n)
+                | MirOp::CallSuper(n)
+                | MirOp::ActorCall(n)
+                | MirOp::ActorSend(n)
+                | MirOp::TaskSpawn(n)
+                | MirOp::MakeClosure(n, _) => names.push(n.clone()),
+                _ => {}
+            }
+        }
+    };
+    if !func.blocks.is_empty() {
+        for block in &func.blocks {
+            push_ops(&block.instructions, &mut names);
+        }
+    } else {
+        push_ops(&func.instructions, &mut names);
+    }
+    names
+}
+
+/// C-3cc: pull transitive Call* callees from `pool` into `selected` (stdlib MIR link).
+/// Mirrors interpret-path [`crate::stdlib_fastpath::link_stdlib_callees`] for MIR fragments.
+pub(crate) fn link_stdlib_mir_call_closure(
+    selected: &mut Vec<MirFunction>,
+    pool: &[MirFunction],
+) {
+    let pool_map: std::collections::HashMap<SmolStr, &MirFunction> = pool
+        .iter()
+        .map(|f| (f.name.clone(), f))
+        .collect();
+    let mut have: std::collections::HashSet<SmolStr> =
+        selected.iter().map(|f| f.name.clone()).collect();
+    let mut queue: std::collections::VecDeque<SmolStr> = std::collections::VecDeque::new();
+    for f in selected.iter() {
+        for c in mir_fn_named_callees(f) {
+            if !have.contains(&c) {
+                queue.push_back(c);
+            }
+        }
+    }
+    while let Some(name) = queue.pop_front() {
+        if !have.insert(name.clone()) {
+            continue;
+        }
+        let Some(func) = pool_map.get(&name) else {
+            continue;
+        };
+        for c in mir_fn_named_callees(func) {
+            if !have.contains(&c) {
+                queue.push_back(c);
+            }
+        }
+        selected.push((*func).clone());
+    }
+}
+
 fn lower_stdlib_modules_to_functions(
     graph: &ModuleGraph,
     instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
     options: &DriverOptions,
     only_paths: Option<&std::collections::HashSet<PathBuf>>,
 ) -> SyxResult<Vec<MirFunction>> {
-    let mut out = Vec::new();
-    let mut seen = std::collections::HashSet::<SmolStr>::new();
+    let mut pool = Vec::new();
+    let mut selected = Vec::new();
+    let mut seen_pool = std::collections::HashSet::<SmolStr>::new();
+    let mut seen_sel = std::collections::HashSet::<SmolStr>::new();
     // C-3a: pre-advertise arity-qualified overload MIR names so cross-module Calls
     // (e.g. Concurrency → SyxHost.task_detach) resolve before bodies are merged.
     let mut arity_callables: indexmap::IndexSet<SmolStr> = indexmap::IndexSet::new();
@@ -410,8 +474,11 @@ fn lower_stdlib_modules_to_functions(
         syx_mir::merge_mir_shell_functions(&mut shell, syx_mir::lower_dataclass_shells(&dep_mono));
         syx_mir::merge_mir_shell_functions(&mut shell, syx_mir::lower_enum_shells(&dep_mono));
         for func in shell.functions {
-            if seen.insert(func.name.clone()) {
-                out.push(func);
+            if seen_pool.insert(func.name.clone()) {
+                pool.push(func.clone());
+            }
+            if seen_sel.insert(func.name.clone()) {
+                selected.push(func);
             }
         }
         let dep_mir = syx_mir::lower_module_with_extra_extensions(
@@ -422,16 +489,52 @@ fn lower_stdlib_modules_to_functions(
         )?;
         let module_stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
         for mut func in dep_mir.functions {
+            func.name = cross_module_function_name(&path, module_stem, func.name);
+            if seen_pool.insert(func.name.clone()) {
+                pool.push(func.clone());
+            }
             if !mir_merge_stdlib_function(module_stem, func.name.as_str(), &dep_exports) {
                 continue;
             }
-            func.name = cross_module_function_name(&path, module_stem, func.name);
-            if seen.insert(func.name.clone()) {
-                out.push(func);
+            if seen_sel.insert(func.name.clone()) {
+                selected.push(func);
             }
         }
     }
-    Ok(out)
+    // C-3cc: export filter can keep Float_bitWidth but drop Float32_bitWidth — close the gap.
+    link_stdlib_mir_call_closure(&mut selected, &pool);
+    Ok(selected)
+}
+
+/// C-3cc: if `functions` has Call* targets missing from itself, refill from a full stdlib lower.
+/// Used by unified merge **and** prelude `compile_to_program` (Float_bitWidth→Float32_bitWidth).
+pub(crate) fn ensure_stdlib_mir_call_closure(
+    graph: &ModuleGraph,
+    instantiations: &std::collections::HashSet<(SmolStr, Vec<SmolStr>)>,
+    options: &DriverOptions,
+    functions: &mut Vec<MirFunction>,
+) -> SyxResult<()> {
+    let have: std::collections::HashSet<SmolStr> =
+        functions.iter().map(|f| f.name.clone()).collect();
+    let mut need_pool = false;
+    for f in functions.iter() {
+        for c in mir_fn_named_callees(f) {
+            if !have.contains(&c) {
+                need_pool = true;
+                break;
+            }
+        }
+        if need_pool {
+            break;
+        }
+    }
+    if !need_pool {
+        return Ok(());
+    }
+    // Full-graph pool (export filter + Call closure); then transitive link into `functions`.
+    let pool = lower_stdlib_modules_to_functions(graph, instantiations, options, None)?;
+    link_stdlib_mir_call_closure(functions, &pool);
+    Ok(())
 }
 
 fn append_mir_functions(mir: &mut syx_mir::MirModule, functions: &[MirFunction]) {
@@ -515,7 +618,13 @@ fn merge_stdlib_modules_into_mir(
                 if trace {
                     eprintln!("stdlib_mir_trace=process fns={}", entry.functions.len());
                 }
-                append_mir_functions(mir, &entry.functions);
+                // Clone out of the lock so C-3cc ensure can cold-lower if the cache
+                // predates Call-closure linking (embed/disk may still be incomplete).
+                let mut functions = entry.functions.as_ref().clone();
+                drop(guard);
+                ensure_stdlib_mir_call_closure(graph, instantiations, options, &mut functions)?;
+                append_mir_functions(mir, &functions);
+                store_stdlib_mir_process(tag, mono_key, modules_key, Arc::new(functions));
                 return Ok(());
             }
         }
@@ -530,8 +639,10 @@ fn merge_stdlib_modules_into_mir(
                 image.functions.len()
             );
         }
-        append_mir_functions(mir, &image.functions);
-        store_stdlib_mir_process(tag, mono_key, modules_key, Arc::new(image.functions));
+        let mut functions = image.functions;
+        ensure_stdlib_mir_call_closure(graph, instantiations, options, &mut functions)?;
+        append_mir_functions(mir, &functions);
+        store_stdlib_mir_process(tag, mono_key, modules_key, Arc::new(functions));
         return Ok(());
     }
 
@@ -602,6 +713,9 @@ fn merge_stdlib_modules_into_mir(
         }
         functions = lower_stdlib_modules_to_functions(graph, instantiations, options, None)?;
     }
+
+    // C-3cc: embed/disk images may predate Call-closure link; refill missing callees.
+    ensure_stdlib_mir_call_closure(graph, instantiations, options, &mut functions)?;
 
     append_mir_functions(mir, &functions);
     if let Some(image) = crate::stdlib_mir_image::build_image(graph, functions.clone(), mono_key) {

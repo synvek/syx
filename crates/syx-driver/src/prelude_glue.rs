@@ -130,6 +130,7 @@ pub(crate) fn ensure_prelude_modules_in_graph(
             options,
             source.name.as_str(),
             &prelude_ext,
+            Some(graph),
         )?;
         let unit = ModuleUnit {
             path: key.clone(),
@@ -194,6 +195,7 @@ fn ensure_embedded_protocols_in_graph(
             options,
             source.name.as_str(),
             &empty_prelude,
+            Some(graph),
         )?;
         let unit = ModuleUnit {
             path: key.clone(),
@@ -244,6 +246,7 @@ fn ensure_reference_builtins_in_graph(
             options,
             source.name.as_str(),
             &empty_prelude,
+            Some(graph),
         )?;
         let unit = ModuleUnit {
             path: key.clone(),

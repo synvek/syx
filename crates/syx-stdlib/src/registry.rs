@@ -4236,11 +4236,10 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::IsolationPolicy => "String",
         HostFnId::BlockingPoolSetSize => "Int",
         HostFnId::BlockingPoolSize => "Int",
-        // C-0v2 deferred: façade Dictionary; table Object + Dictionary←Object carve-out
-        // (host→Dictionary trips MIR016 Float32_bitWidth).
-        HostFnId::FileReadAsync => "Object",
+        // C-0v4: RetypeGround — align host table with SA-6-01 Dictionary façades.
+        HostFnId::FileReadAsync => "Dictionary",
         HostFnId::IoAdapterPolicy => "String",
-        HostFnId::TcpReadAsync => "Object",
+        HostFnId::TcpReadAsync => "Dictionary",
         HostFnId::MutexUnlockQuiet => "Bool",
         HostFnId::SyncPolicy => "String",
         HostFnId::MutexLockWait => "Bool",
@@ -4601,8 +4600,8 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::ProcessSpawn => "Int",
         HostFnId::ProcessWait => "Int",
         HostFnId::ProcessExitCode => "Int",
-        // C-0v2 deferred (same MIR016 as FileReadAsync); façade Dictionary via carve-out.
-        HostFnId::FileStat => "Object",
+        // C-0v4: RetypeGround — align host table with SA-6-01 Dictionary façade.
+        HostFnId::FileStat => "Dictionary",
         HostFnId::FileWatch => "Array",
         HostFnId::FileSymlink | HostFnId::FileChmod => "Bool",
         HostFnId::FileReadLink => "String",

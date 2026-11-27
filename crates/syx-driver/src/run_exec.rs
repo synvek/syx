@@ -60,6 +60,7 @@ pub fn compile_file_from_source(name: &str, source: &str) -> SyxResult<ModuleUni
         &DriverOptions::default(),
         name,
         &empty_prelude,
+        None,
     )?;
     Ok(ModuleUnit {
         path: PathBuf::from(name),
@@ -101,6 +102,7 @@ pub fn compile_embedded(source: &str, options: &DriverOptions) -> SyxResult<()> 
         options,
         "embed.sy",
         &empty_prelude,
+        None,
     )?;
     Ok(())
 }
@@ -138,6 +140,7 @@ pub fn compile_and_run_embedded(source: &str, options: &DriverOptions) -> SyxRes
         options,
         "embed.sy",
         &empty_prelude,
+        None,
     )?;
     let (code, printed) = if program_needs_runtime(&program) {
         let rt = Arc::new(SyxRuntime::new(program).with_strict(options.strict_concurrency));

@@ -46,6 +46,7 @@ pub(crate) fn compile_to_program(
     options: &DriverOptions,
     source_name: &str,
     prelude_extensions: &indexmap::IndexSet<(SmolStr, SmolStr)>,
+    graph: Option<&ModuleGraph>,
 ) -> SyxResult<()> {
     let mut mono_module = monomorphize_module(module, instantiations);
     inject_virtual_prelude_imports(&mut mono_module, options);
@@ -70,6 +71,16 @@ pub(crate) fn compile_to_program(
         &int_kinds,
         source.as_ref(),
     )?;
+    // C-3cc: prelude modules lower alone (Float.bitWidth → Call Float32_bitWidth);
+    // pull missing named callees from already-loaded stdlib graph before C-3p.
+    if let Some(graph) = graph {
+        crate::mir_unify::ensure_stdlib_mir_call_closure(
+            graph,
+            instantiations,
+            options,
+            &mut mir.functions,
+        )?;
+    }
     optimize(&mut mir);
     backfill_mono_witness_cache(instantiations, &mir);
     CodeGenerator::compile_with_mir(

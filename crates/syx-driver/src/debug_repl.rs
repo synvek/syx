@@ -105,6 +105,7 @@ pub fn repl_eval(source: &str) -> SyxResult<()> {
         &DriverOptions::default(),
         "repl.sy",
         &empty_prelude,
+        None,
     )?;
     let mut vm = WasmVM::default();
     vm.run_program(&program)?;

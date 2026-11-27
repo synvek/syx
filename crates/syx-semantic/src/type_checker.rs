@@ -36,15 +36,8 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         (TypeId::Array(_), TypeId::Named(n)) if n.as_str() == "Array" => true,
         (TypeId::Named(n), TypeId::Dictionary { .. }) if n.as_str() == "Dictionary" => true,
         (TypeId::Dictionary { .. }, TypeId::Named(n)) if n.as_str() == "Dictionary" => true,
-        // C-0v: SA-6-01 façades return Dictionary while host table still Object
-        // (RetypeGround deferred — FileStat→Dictionary trips MIR016). Narrow
-        // carve-out only; not a global found-Object soft arm.
-        (TypeId::Dictionary { .. }, TypeId::Named(n)) if n.as_str() == "Object" => true,
-        (TypeId::Named(n), TypeId::Named(o))
-            if n.as_str() == "Dictionary" && o.as_str() == "Object" =>
-        {
-            true
-        }
+        // C-0v4: Dictionary←Object carve-out removed — FileStat/FileReadAsync/TcpReadAsync
+        // host table now returns Dictionary (no global found-Object soft arm).
         (TypeId::Optional(inner), found)
             if is_compatible(inner, found) || inner.as_ref() == found =>
         {
