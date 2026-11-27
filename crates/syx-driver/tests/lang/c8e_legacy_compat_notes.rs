@@ -9,7 +9,8 @@ fn ch10_zh() -> &'static str {
 }
 
 fn inventory_rows() -> Vec<Vec<&'static str>> {
-    let census = include_str!("../../../../docs/census/c-8c-book-parser-fork-census.md");
+    // C-9g2: same public fixture as c8c (≠ docs/census).
+    let census = include_str!("fixtures/c8c_book_parser_fork_inventory.md");
     let mut rows = Vec::new();
     let mut in_table = false;
     for line in census.lines() {

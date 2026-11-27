@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-27 · **C-0u `[x]`**（Module.Type Init sink）；**C-0a+ prep ready**（ADR；仍 park）；C-9 `[x]`；C-0 薄闸 `[x]`；C-3 `[~]`（a…ca）；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；产品下一 = **C-0a+ 开刀候选**（C-0e 仍 park；成熟度仍 ~**2.6/5**；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-9g2 `[x]`**（公开 census c-8 残债清零；C-9 真收口）；C-0u `[x]`；**C-0a+ prep ready**（ADR；仍 park · **开刀窗可开**）；C-0 薄闸 `[x]`；C-3/C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；产品下一 = **C-0a+ 开刀候选**（C-0e 仍 park；成熟度仍 ~**2.6/5**；不宣称 C-3/C-5 `[x]`）。
 
 ## 1. 一句话现状
 
@@ -70,7 +70,7 @@ flowchart LR
 | JIT | 1.5 | Suite-1 pilot；非生产默认 |
 | stdlib / HostFn | 3.0 / 2.0 | 表面大；稳定 ABI 与 HostFn 膨胀风险 |
 | package / security | 2.9 | 归档/签名好；C-4 默认可复现；C-5a 假 sandbox 承诺已降级（真隔离仍缺） |
-| CI / docs / release | 2.9 | C-6 `[x]`；C-9 `[x]`（meta 出公开 CI；3600/1700）；C-7a…c + C-7 仍 `[~]`（scaffold park） |
+| CI / docs / release | 2.9 | C-6 `[x]`；C-9 `[x]`（含 **g2**：公开 `docs/census` 仅 stub；3600/1700）；C-7 仍 `[~]` |
 | LSP / DX | 3.5+ | 1788 lib tests；编辑器面强 |
 
 **综合：约 2.6/5 — 研究型 beta / 受控实验工具链，≠ 生产级 Swift-like 语言。**（C-0u / C-9 不抬语义维；上调须等 C-0a+ 真关软臂。）
@@ -95,7 +95,7 @@ flowchart LR
 
 - 测试矩阵 / fuzz 信号（C-7 `[~]`：C-7a…C-7c done；C-7c+ park）  
 - 文档/formatter 诚实（C-8 `[~]`：C-8a…f done；CST lossless 实现 / CallSuper / 去 parser legacy park）  
-- **维护者证据链（C-9 `[x]`）**：meta/census → `plan/harness/`；公开 `lang` + `mir_floor`  
+- **维护者证据链（C-9 `[x]` + g2）**：meta/census → `plan/harness/`；公开 `docs/census` 仅 stub；lang 钉 `tests/lang/fixtures/`  
 - 巨型模块拆分；实验 scaffold 移出 stable（C-7c+ park）
 
 **仍 park（非默认下一）：** CST postfix 深刀、codegen Break、JIT Suite-1 扩面、simd Object wipe、SyxHost、真隐式 `CallSuper`、HostFn+1、产品伞 unpark。

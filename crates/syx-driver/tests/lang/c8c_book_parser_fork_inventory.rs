@@ -3,7 +3,8 @@
 //! Post C-8d/C-8e: no live book_ahead / doc_debt / legacy_accept rows.
 
 fn census_text() -> &'static str {
-    include_str!("../../../../docs/census/c-8c-book-parser-fork-census.md")
+    // C-9g2: public fixture — not docs/census (maintainer ledger in plan/harness).
+    include_str!("fixtures/c8c_book_parser_fork_inventory.md")
 }
 
 fn inventory_rows(census: &str) -> Vec<Vec<&str>> {

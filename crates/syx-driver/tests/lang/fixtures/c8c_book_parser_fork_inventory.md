@@ -1,3 +1,5 @@
+<!-- Public lang fixture (C-9g2). Maintainer ledger: plan/harness/census-docs/c-8c-book-parser-fork-census.md -->
+
 # C-8c book↔parser fork inventory census
 
 **Date:** 2026-11-25  
@@ -71,71 +73,3 @@
 | F24 | `02` §3 true CallSuper | park: thick semantics / separate ADR | no CallSuper impl (same as F01 toolchain) | parked_honest | `plan/02-improvement-roadmap.md` §3 | park |
 
 **Row count:** 24 (≥20). **Classes present (post C-8e):** `parked_honest` only as live class（`book_ahead`/`doc_debt` 由 C-8d 清零；`legacy_accept` 由 C-8e 书侧注后 → `parked_honest`；开账时四 class 齐全）。
-
-## Delivery
-
-1. Live inventory table (this file) ≥20 rows + closed class enum  
-2. Lang thin nails + census script  
-3. SSOT / `02`：C-8c `[x]`；C-8 `[~]`；引入 C-8d；下一 **C-8d**  
-4. language-book-ssot References pointer only  
-5. 硬 KPI 持有
-
-## Gates (honest)
-
-| KPI | Target | Result |
-|-----|--------|--------|
-| inventory rows ≥20 | **≥20** | **24** |
-| all four classes present | **pass** | **1** |
-| CallSuper row `parked_honest` | **pass** | **1** (F01) |
-| convenience init row present | **pass** | **1** (F02) |
-| legacy bare-field `legacy_accept` | **pass** | **1** (F18) |
-| lang inventory nails | **pass** | **1** (3/3) |
-| `native=real` count | **16** | **16** |
-| `sy,output` | **12/12** | **12/12** (en=6 zh=6) |
-| browser_failed | **0** | **0** (46 passed; 2 ignored) |
-| wasm | **46/46** | **46/46** |
-| Object | **≤180 / ≤10** | **180 / 10** |
-| simd residual | **≥159** | **159** |
-| `c8c_book_parser_fork_census_ok` | **1** | **1** |
-| `c8_exited` | **0** | **0** |
-
-## Results (2026-11-25)
-
-```
-c8c_inventory_rows=24
-c8c_classes_all=1
-c8c_callsuper_parked=1
-c8c_legacy_bare=1
-c8c_adr_pointer=1
-c8c_inventory_nails=1
-c8c_native_real_count=16
-c8c_tls_server_partial=1
-c8c_census_doc=1
-c8c_ssot_updated=1
-c8c_roadmap_ok=1
-c8_exited=0
-output_run_ok=12
-output_run_total=12
-browser_failed=0
-wasm_passed=46
-wasm_failed=0
-object_sig_residual_count=180
-object_sig_residual_files=10
-simd_object_residual=159
-c8c_book_parser_fork_census_ok=1
-current=C-8c
-next=C-8d
-c8_exited=0
-```
-
-## Non-claims
-
-- ≠ C-8 `[x]` · fork 已收敛 · 全量 fence 修绿
-- ≠ 改 parser/semantic 语法面 · CST lossless GA
-- ≠ dual_grammar / SA-2 surface 冒充本窗
-- ≠ 真 CallSuper · C-7c+ · ModuleId · C-5c+ · tls.server · macOS · R-50
-- ≠ 重写 `implementation-status.md`
-
-## Soft park
-
-C-8d · CST lossless/扩面 · 真 CallSuper · C-7c+ · ModuleId · C-5c+ · tls.server · macOS · R-50 · 重写 implementation-status · 统一 dual_grammar 与 fork ledger

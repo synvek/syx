@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-0u Module.Type Init sink `[x]`**；**C-0a+ prep ADR**（仍 park 待开刀）；C-9 `[x]`；C-0 `[x]` 薄闸；C-3 `[~]`（a…ca；C-3cb W001 现不复现→park）；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = C-0a+ 开刀候选**（或明示继续 park；C-0e 仍 park；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-9g2 `[x]`**（公开 census c-8 残债清零；C-9 真收口）；C-0u `[x]`；C-0a+ prep ready（仍 park）；C-3/C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = C-0a+ 开刀候选**（C-0e 仍 park；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -380,8 +380,9 @@ formatter CST lossless；Ch15 隐式 `super.init` MD 诚实；语言书与 parse
 | **C-9d** | `[x]` | meta 合约 + `*_census.sh` → `plan/harness/`；公开 `scripts/` 瘦身 |
 | **C-9e** | `[x]` | 降级/删除 Core credibility 全量 job；测试 README 指向 lang/mir_floor |
 | **C-9f** | `[x]` | 公开 `docs/census` 窗账本迁私有；留能力摘要/stub |
+| **C-9g2** | `[x]` | 清跨轴阶段回灌的 `docs/census/c-8a…f`；lang `c8c`/`c8e` 改 `tests/lang/fixtures/`；公开 census 仅 README |
 
-**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f 收口）；产品默认下一仍跨轴。
+**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f + **g2** 真收口）；产品默认下一 → **C-0a+ 开刀候选**。
 
 ## 3. 显式 park（非默认下一）
 
