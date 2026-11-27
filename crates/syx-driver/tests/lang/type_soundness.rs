@@ -900,6 +900,52 @@ func main() { get(0) }
 }
 
 #[test]
+fn c0t_untyped_enum_case_member_arg_int_s004() {
+    let code = compile_fail_code(
+        r#"
+enum E { wrap(n: Int) }
+func take(_ x) { E.wrap(n: x) }
+func main() { take(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+enum E { wrap(n: Int) }
+func take(_ x) { E.wrap(n: x) }
+func main() { take(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0t_literal_enum_case_arg_still_ok() {
+    compile_ok(
+        r#"
+enum E { wrap(n: Int) }
+func main() { E.wrap(n: 1) }
+"#,
+    );
+}
+
+#[test]
+fn c0t_any_enum_case_arg_still_ok() {
+    compile_ok(
+        r#"
+enum E { wrap(n: Any) }
+func take(_ x) { E.wrap(n: x) }
+func main() { take(1) }
+"#,
+    );
+}
+
+#[test]
 fn c0j_untyped_method_arg_int_s004() {
     let code = compile_fail_code(
         r#"

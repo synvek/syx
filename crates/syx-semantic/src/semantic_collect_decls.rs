@@ -28,6 +28,31 @@ impl SemanticAnalyzer {
         );
     }
 
+    /// C-0t: enum/final-class case payload → function_params for Ident/Member Call sink.
+    fn register_enum_case_payload_params(
+        &mut self,
+        enum_name: &SmolStr,
+        case: &SmolStr,
+        fields: &[(SmolStr, TypeExpr)],
+    ) {
+        if fields.is_empty() {
+            return;
+        }
+        let tys: Vec<TypeId> = fields.iter().map(|(_, te)| type_expr_to_id(te)).collect();
+        let labels: Vec<(ParamLabel, SmolStr)> = fields
+            .iter()
+            .map(|(f, _)| (ParamLabel::Same, f.clone()))
+            .collect();
+        let qual = SmolStr::new(format!("{enum_name}_{case}"));
+        self.function_params.insert(qual.clone(), tys.clone());
+        self.function_param_labels.insert(qual, labels.clone());
+        // Bare case for Ident Call — skip if key already taken (cross-enum collision park).
+        if !self.function_params.contains_key(case) {
+            self.function_params.insert(case.clone(), tys);
+            self.function_param_labels.insert(case.clone(), labels);
+        }
+    }
+
     fn collect_nested_type_decl(&mut self, outer: &SmolStr, decl: &Decl) {
         match decl {
             Decl::Class {
@@ -144,6 +169,7 @@ impl SemanticAnalyzer {
                     if !fields.is_empty() {
                         self.enum_case_field_types
                             .insert((qualified.clone(), case.clone()), fields.clone());
+                        self.register_enum_case_payload_params(&qualified, case, fields);
                     }
                 }
                 self.enum_cases.insert(qualified.clone(), case_names);
@@ -179,6 +205,7 @@ impl SemanticAnalyzer {
                     if !fields.is_empty() {
                         self.enum_case_field_types
                             .insert((qualified.clone(), variant.clone()), fields.clone());
+                        self.register_enum_case_payload_params(&qualified, variant, fields);
                     }
                 }
                 self.enum_cases.insert(qualified.clone(), variant_names);
@@ -900,6 +927,7 @@ impl SemanticAnalyzer {
                         if !fields.is_empty() {
                             self.enum_case_field_types
                                 .insert((name.clone(), variant.clone()), fields.clone());
+                            self.register_enum_case_payload_params(name, variant, fields);
                         }
                     }
                     self.enum_cases.insert(name.clone(), variant_names);
@@ -1074,6 +1102,8 @@ impl SemanticAnalyzer {
                         if !fields.is_empty() {
                             self.enum_case_field_types
                                 .insert((name.clone(), case.clone()), fields.clone());
+                            // C-0t: enum case payload params (≠ Module.Type / C-0a+).
+                            self.register_enum_case_payload_params(name, case, fields);
                         }
                     }
                     self.enum_cases.insert(name.clone(), case_names.clone());

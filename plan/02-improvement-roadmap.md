@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-0s subscript index Unknown sink `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-0t enum case payload Unknown sink `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（C-0a+ prep / C-0e / Module.Type prep；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -60,6 +60,7 @@
 | **C-0q** | `[x]` | Index **read** index/key：Array index + Dict key Unknown→地面 → **S004**（复用 C-0p 同形；**未**关软臂；≠ String / subscript get index）；census [`c-0q-index-read-index-key-unknown-sink-census`](../docs/census/c-0q-index-read-index-key-unknown-sink-census.md) |
 | **C-0r** | `[x]` | String Index 下标：`platform_int` + Unknown→地面 → **S004**（镜像 Array C-0q；**未**关软臂；≠ String 写 / subscript index）；census [`c-0r-string-index-unknown-sink-census`](../docs/census/c-0r-string-index-unknown-sink-census.md) |
 | **C-0s** | `[x]` | subscript get/set **index**：mangled `{Type}___subscript_*` 首参 Unknown→地面 → **S004**（extension 补 params；**未**关软臂；≠ enum / Module.Type）；census [`c-0s-subscript-index-unknown-sink-census`](../docs/census/c-0s-subscript-index-unknown-sink-census.md) |
+| **C-0t** | `[x]` | Enum case payload：`{Enum}_{case}` + bare `function_params`/labels → Ident/Member Call sink → **S004**（collect-only；**未**关软臂；≠ Module.Type / 跨 enum 同名 case）；census [`c-0t-enum-case-payload-unknown-sink-census`](../docs/census/c-0t-enum-case-payload-unknown-sink-census.md) |
 | **C-0a+** | `[-]` park | `ErrorType` / `InferenceVar` 三分；关 `is_compatible(_, Unknown)` 软臂 |
 | **C-0e** | `[-]` park | integer narrowing / 书 S008 对齐 |
 
@@ -78,6 +79,7 @@
 **验收（C-0q）：** `get(_ i) { var a: Array<Int> = [0]; let _ = a[i] }` → **S004**；Dict key 读同形；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0q `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep / subscript index；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-0r）：** `get(_ i) { let s = "ab"; let c = s[i] }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0r `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep / subscript index；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-0s）：** `get(_ i) { var b = Box(); let x = b[i] }` / `b[i] = 1`（desugared `__subscript_*`）→ **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0s `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep；**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-0t）：** `enum E { wrap(n: Int) }` + `take(_ x) { E.wrap(n: x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0t `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / Module.Type prep；**不**宣称 C-3/C-5 `[x]`）。  
 **不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG。
 
 ### C-1 · ManagedHeap 安全默认（P0） — `[x]` 默认降级+identity+immutable+叙事
