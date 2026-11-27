@@ -628,7 +628,35 @@ impl SemanticAnalyzer {
                         Ok(*value)
                     }
                     TypeId::Named(type_name) if self.has_subscript_get(&type_name) => {
-                        self.analyze_expr(index)?;
+                        let mangled =
+                            SmolStr::new(format!("{type_name}___subscript_get"));
+                        if let Some(idx_ty) = self
+                            .function_params
+                            .get(&mangled)
+                            .and_then(|p| p.first())
+                            .filter(|t| !matches!(t, TypeId::Unknown | TypeId::GenericParam(_)))
+                            .cloned()
+                        {
+                            let found =
+                                self.analyze_expr_with_expected(index, Some(&idx_ty))?;
+                            self.check_assignable_with_literal(
+                                idx_ty.clone(),
+                                found.clone(),
+                                "index",
+                                Some(index),
+                                *span,
+                            )?;
+                            // C-0s: subscript-get index Unknown→ground sink (≠ close soft arm / C-0a+).
+                            self.check_unknown_to_ground_sink(
+                                &idx_ty,
+                                &found,
+                                index,
+                                "index",
+                                *span,
+                            )?;
+                        } else {
+                            self.analyze_expr(index)?;
+                        }
                         Ok(self
                             .subscript_return_type(&type_name)
                             .unwrap_or(TypeId::Unknown))
@@ -769,7 +797,35 @@ impl SemanticAnalyzer {
                 let obj_ty = self.type_of_expr(object);
                 if let TypeId::Named(ref type_name) = obj_ty {
                     if self.has_subscript_set(type_name) {
-                        self.analyze_expr(index)?;
+                        let mangled =
+                            SmolStr::new(format!("{type_name}___subscript_set"));
+                        if let Some(idx_ty) = self
+                            .function_params
+                            .get(&mangled)
+                            .and_then(|p| p.first())
+                            .filter(|t| !matches!(t, TypeId::Unknown | TypeId::GenericParam(_)))
+                            .cloned()
+                        {
+                            let found =
+                                self.analyze_expr_with_expected(index, Some(&idx_ty))?;
+                            self.check_assignable_with_literal(
+                                idx_ty.clone(),
+                                found.clone(),
+                                "index",
+                                Some(index),
+                                *span,
+                            )?;
+                            // C-0s: subscript-set index Unknown→ground sink (≠ close soft arm / C-0a+).
+                            self.check_unknown_to_ground_sink(
+                                &idx_ty,
+                                &found,
+                                index,
+                                "index",
+                                *span,
+                            )?;
+                        } else {
+                            self.analyze_expr(index)?;
+                        }
                         if let Some(expected) = self.subscript_return_type(type_name) {
                             if !matches!(
                                 expected,

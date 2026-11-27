@@ -971,6 +971,7 @@ impl SemanticAnalyzer {
                             name,
                             access,
                             return_type,
+                            params,
                             ..
                         } = method
                         {
@@ -1008,6 +1009,20 @@ impl SemanticAnalyzer {
                             }
                             // Keep mangled `__get_`/`__set_` symbols for Call resolution.
                             let mangled = SmolStr::new(format!("{type_name}_{name}"));
+                            // C-0s: extension subscript index params (≠ close soft arm / C-0a+).
+                            if matches!(name.as_str(), "__subscript_get" | "__subscript_set") {
+                                self.function_params.insert(
+                                    mangled.clone(),
+                                    params
+                                        .iter()
+                                        .map(|p| {
+                                            p.ty.as_ref()
+                                                .map(type_expr_to_id)
+                                                .unwrap_or(TypeId::Unknown)
+                                        })
+                                        .collect(),
+                                );
+                            }
                             self.function_return_types
                                 .insert(mangled.clone(), ret.clone());
                             self.globals.insert(

@@ -791,6 +791,115 @@ func main() { get(0) }
 }
 
 #[test]
+fn c0s_untyped_subscript_get_index_int_s004() {
+    let code = compile_fail_code(
+        r#"
+class Box {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func get(_ i) {
+    var b = Box()
+    let x = b[i]
+}
+func main() { get(0) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+class Box {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func get(_ i) {
+    var b = Box()
+    let x = b[i]
+}
+func main() { get(0) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0s_untyped_subscript_set_index_int_s004() {
+    let code = compile_fail_code(
+        r#"
+class Box {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func put(_ i) {
+    var b = Box()
+    b[i] = 1
+}
+func main() { put(0) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+class Box {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func put(_ i) {
+    var b = Box()
+    b[i] = 1
+}
+func main() { put(0) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0s_literal_subscript_index_still_ok() {
+    compile_ok(
+        r#"
+class Box {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func main() {
+    var b = Box()
+    let x = b[0]
+    b[0] = 1
+}
+"#,
+    );
+}
+
+#[test]
+fn c0s_any_subscript_index_still_ok() {
+    compile_ok(
+        r#"
+class Box {
+    func __subscript_get(i: Int) -> Int { return 0 }
+    func __subscript_set(i: Int, newValue: Int) { }
+}
+func get(_ i: Any) {
+    var b = Box()
+    let x = b[0]
+    b[0] = 1
+}
+func main() { get(0) }
+"#,
+    );
+}
+
+#[test]
 fn c0j_untyped_method_arg_int_s004() {
     let code = compile_fail_code(
         r#"
