@@ -563,6 +563,93 @@ func main() { put(1) }
 }
 
 #[test]
+fn c0p_untyped_array_index_int_s004() {
+    let code = compile_fail_code(
+        r#"
+func put(_ i) {
+    var a: Array<Int> = [0]
+    a[i] = 1
+}
+func main() { put(0) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+func put(_ i) {
+    var a: Array<Int> = [0]
+    a[i] = 1
+}
+func main() { put(0) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0p_untyped_dict_key_string_s004() {
+    let code = compile_fail_code(
+        r#"
+func put(_ k) {
+    var d: Dictionary<String, Int> = [:]
+    d[k] = 1
+}
+func main() { put("k") }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+func put(_ k) {
+    var d: Dictionary<String, Int> = [:]
+    d[k] = 1
+}
+func main() { put("k") }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected String"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0p_literal_index_key_still_ok() {
+    compile_ok(
+        r#"
+func main() {
+    var a: Array<Int> = [0]
+    a[0] = 1
+    var d: Dictionary<String, Int> = [:]
+    d["k"] = 1
+}
+"#,
+    );
+}
+
+#[test]
+fn c0p_any_index_key_still_ok() {
+    compile_ok(
+        r#"
+func put(_ i: Any, _ k: Any) {
+    var a: Array<Int> = [0]
+    a[0] = 1
+    var d: Dictionary<String, Int> = [:]
+    d["k"] = 1
+}
+func main() { put(0, "k") }
+"#,
+    );
+}
+
+#[test]
 fn c0j_untyped_method_arg_int_s004() {
     let code = compile_fail_code(
         r#"

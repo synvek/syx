@@ -774,10 +774,18 @@ impl SemanticAnalyzer {
                         let found_key =
                             self.analyze_expr_with_expected(index, Some(key.as_ref()))?;
                         self.check_assignable_with_literal(
-                            *key,
-                            found_key,
+                            (*key).clone(),
+                            found_key.clone(),
                             "key",
                             Some(index),
+                            *span,
+                        )?;
+                        // C-0p: index-assign key Unknown→ground sink (≠ close soft arm / C-0a+).
+                        self.check_unknown_to_ground_sink(
+                            key.as_ref(),
+                            &found_key,
+                            index,
+                            "key",
                             *span,
                         )?;
                     } else {
@@ -810,10 +818,18 @@ impl SemanticAnalyzer {
                     let idx_ty = TypeId::platform_int();
                     let found_idx = self.analyze_expr_with_expected(index, Some(&idx_ty))?;
                     self.check_assignable_with_literal(
-                        idx_ty,
-                        found_idx,
+                        idx_ty.clone(),
+                        found_idx.clone(),
                         "index",
                         Some(index),
+                        *span,
+                    )?;
+                    // C-0p: index-assign index Unknown→ground sink (≠ close soft arm / C-0a+).
+                    self.check_unknown_to_ground_sink(
+                        &idx_ty,
+                        &found_idx,
+                        index,
+                        "index",
                         *span,
                     )?;
                     if !matches!(elem.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
