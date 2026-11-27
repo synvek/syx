@@ -56,7 +56,8 @@ impl SemanticAnalyzer {
                         (ty.clone(), ty)
                     }
                 } else {
-                    (TypeId::Unknown, TypeId::Unknown)
+                    // C-0a+2: bare let with no init/annotation is an inference hole.
+                    (TypeId::InferenceVar, TypeId::InferenceVar)
                 };
                 let has_annotation = annotated.is_some();
                 let final_ty = annotated.unwrap_or(inferred);
@@ -419,7 +420,7 @@ impl SemanticAnalyzer {
                 if has_tuple_pattern
                     && !matches!(
                         subject_ty,
-                        TypeId::Array(_) | TypeId::Tuple { .. } | TypeId::Unknown
+                        TypeId::Array(_) | TypeId::Tuple { .. } | TypeId::Unknown | TypeId::InferenceVar
                     )
                 {
                     self.errors.push(self.error_at(
@@ -441,7 +442,7 @@ impl SemanticAnalyzer {
                                 &mut case_scope,
                                 Symbol {
                                     name: bind.clone(),
-                                    ty: TypeId::Unknown,
+                                    ty: TypeId::InferenceVar,
                                     mutable: false,
                                     access: AccessLevel::Internal,
                                 },
@@ -455,7 +456,7 @@ impl SemanticAnalyzer {
                                 &mut case_scope,
                                 Symbol {
                                     name: bind.clone(),
-                                    ty: TypeId::Unknown,
+                                    ty: TypeId::InferenceVar,
                                     mutable: false,
                                     access: AccessLevel::Internal,
                                 },
@@ -515,7 +516,7 @@ impl SemanticAnalyzer {
                 if matches!(pattern, Expr::TuplePattern { .. })
                     && !matches!(
                         subject_ty,
-                        TypeId::Array(_) | TypeId::Tuple { .. } | TypeId::Unknown
+                        TypeId::Array(_) | TypeId::Tuple { .. } | TypeId::Unknown | TypeId::InferenceVar
                     )
                 {
                     self.errors.push(self.error_at(
@@ -529,7 +530,7 @@ impl SemanticAnalyzer {
                         self.define_symbol(
                             Symbol {
                                 name: bind.clone(),
-                                ty: TypeId::Unknown,
+                                ty: TypeId::InferenceVar,
                                 mutable: false,
                                 access: AccessLevel::Internal,
                             },
@@ -542,7 +543,7 @@ impl SemanticAnalyzer {
                         self.define_symbol(
                             Symbol {
                                 name: bind.clone(),
-                                ty: TypeId::Unknown,
+                                ty: TypeId::InferenceVar,
                                 mutable: false,
                                 access: AccessLevel::Internal,
                             },

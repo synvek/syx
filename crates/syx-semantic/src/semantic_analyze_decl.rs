@@ -133,7 +133,8 @@ impl SemanticAnalyzer {
                         .ty
                         .as_ref()
                         .map(|t| self.resolve_type_expr(t))
-                        .unwrap_or(TypeId::Unknown);
+                        // C-0a+2: untyped params are InferenceVar holes (≠ ErrorType).
+                        .unwrap_or(TypeId::InferenceVar);
                     let param_mutable = matches!(param_ty, TypeId::MutReference(_));
                     if let Some(lt) = param.ty.as_ref().and_then(Self::infer_elided_lifetime) {
                         self.binding_lifetimes.insert(param.name.clone(), lt);
@@ -371,7 +372,7 @@ impl SemanticAnalyzer {
                         .ty
                         .as_ref()
                         .map(type_expr_to_id)
-                        .unwrap_or(TypeId::Unknown);
+                        .unwrap_or(TypeId::InferenceVar);
                     self.define_in_scope(
                         &mut fn_scope,
                         Symbol {

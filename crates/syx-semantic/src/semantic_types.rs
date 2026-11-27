@@ -50,7 +50,12 @@ pub enum TypeId {
         lanes: u8,
         element: NumericKind,
     },
+    /// Transitional / legacy inference noise bucket (C-0a+ trichotomy).
     Unknown,
+    /// Unconstrained inference hole (C-0a+); soft-compatible until solved.
+    InferenceVar,
+    /// Poison from a prior hard type/analysis error (C-0a+); never assignable to ground.
+    ErrorType,
 }
 
 impl TypeId {
@@ -63,6 +68,16 @@ impl TypeId {
     /// Width resolution happens at convertibility / codegen via `resolve_alias`.
     pub fn numeric(kind: NumericKind) -> Self {
         TypeId::Numeric(kind)
+    }
+
+    /// C-0a+: inference hole (`Unknown` transitional alias or `InferenceVar`).
+    pub fn is_inference_hole(&self) -> bool {
+        matches!(self, TypeId::Unknown | TypeId::InferenceVar)
+    }
+
+    /// C-0a+: prior hard error poison; must not assign to ground concrete.
+    pub fn is_error_type(&self) -> bool {
+        matches!(self, TypeId::ErrorType)
     }
 
     pub fn as_numeric_kind(&self) -> Option<NumericKind> {

@@ -943,7 +943,8 @@ impl SemanticAnalyzer {
         if method == "json" {
             return type_name_to_id("Object");
         }
-        TypeId::Unknown
+        // C-0a+2: missing member is an inference hole (sink / soft until +3).
+        TypeId::InferenceVar
     }
 
     pub(crate) fn lookup_surface_member_type(

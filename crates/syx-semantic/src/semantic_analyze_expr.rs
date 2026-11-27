@@ -152,12 +152,13 @@ impl SemanticAnalyzer {
         types: &[TypeId],
         span: syx_diagnostics::Span,
     ) -> TypeId {
-        let mut elem = TypeId::Unknown;
+        // C-0a+2: empty collection hole is InferenceVar (not ErrorType).
+        let mut elem = TypeId::InferenceVar;
         for t in types {
-            if matches!(t, TypeId::Unknown) {
+            if t.is_inference_hole() {
                 continue;
             }
-            if matches!(elem, TypeId::Unknown) {
+            if elem.is_inference_hole() {
                 elem = t.clone();
                 continue;
             }
@@ -185,7 +186,7 @@ impl SemanticAnalyzer {
                 }
                 Literal::Bool(_) => TypeId::Bool,
                 Literal::String(_) | Literal::Interpolated(_) | Literal::Regex(_) => TypeId::String,
-                Literal::Nil => TypeId::Optional(Box::new(TypeId::Unknown)),
+                Literal::Nil => TypeId::Optional(Box::new(TypeId::InferenceVar)),
                 // Default: dict literal → homogeneous `Dictionary`. Heterogeneous
                 // bags require an explicit `: Object` annotation (contextual typing
                 // via `analyze_expr_with_expected`).
@@ -199,7 +200,7 @@ impl SemanticAnalyzer {
                     let key_ty = self.unify_element_types(&key_types, expr_span(expr));
                     // Empty `{}` / `[:]` unify to Unknown; Hashable is checked against the
                     // annotation when present (`analyze_expr_with_expected`), not here.
-                    if !matches!(key_ty, TypeId::Unknown) {
+                    if !key_ty.is_inference_hole() {
                         self.validate_dict_key_hashable(&key_ty, expr_span(expr));
                     }
                     let val_ty = self.unify_element_types(&value_types, expr_span(expr));
@@ -279,7 +280,8 @@ impl SemanticAnalyzer {
                 for a in args {
                     self.analyze_expr(a)?;
                 }
-                Ok(TypeId::Unknown)
+                // C-0a+2: untyped macro result is ErrorType poison (demo path).
+                Ok(TypeId::ErrorType)
             }
             Expr::OptionalCast { expr, target, .. } => {
                 let _from = self.analyze_expr(expr)?;
@@ -361,8 +363,10 @@ impl SemanticAnalyzer {
                         *span,
                         "S055",
                     ));
+                    // C-0a+2: invalid `super` → ErrorType poison (demo path).
+                    return Ok(TypeId::ErrorType);
                 }
-                Ok(TypeId::Unknown)
+                Ok(TypeId::InferenceVar)
             }
             Expr::Binary {
                 left,
@@ -494,9 +498,9 @@ impl SemanticAnalyzer {
                 let else_ty = self.analyze_expr(else_branch)?;
                 if is_compatible(&then_ty, &else_ty) || is_compatible(&else_ty, &then_ty) {
                     Ok(then_ty)
-                } else if matches!(then_ty, TypeId::Unknown) {
+                } else if then_ty.is_inference_hole() {
                     Ok(else_ty)
-                } else if matches!(else_ty, TypeId::Unknown) {
+                } else if else_ty.is_inference_hole() {
                     Ok(then_ty)
                 } else {
                     Ok(then_ty)
@@ -604,7 +608,7 @@ impl SemanticAnalyzer {
                         Ok(TypeId::Named(SmolStr::new("Character")))
                     }
                     TypeId::Dictionary { key, value } => {
-                        if !matches!(key.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
+                        if !matches!(key.as_ref(), TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)) {
                             let found =
                                 self.analyze_expr_with_expected(index, Some(key.as_ref()))?;
                             self.check_assignable_with_literal(
@@ -634,7 +638,7 @@ impl SemanticAnalyzer {
                             .function_params
                             .get(&mangled)
                             .and_then(|p| p.first())
-                            .filter(|t| !matches!(t, TypeId::Unknown | TypeId::GenericParam(_)))
+                            .filter(|t| !matches!(t, TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)))
                             .cloned()
                         {
                             let found =
@@ -679,7 +683,7 @@ impl SemanticAnalyzer {
                     }
                 };
                 let expected = self.assign_expected_type(&sym_ty);
-                let ty = if matches!(expected, TypeId::Unknown) {
+                let ty = if expected.is_inference_hole() {
                     self.analyze_expr(value)?
                 } else {
                     self.analyze_expr_with_expected(value, Some(&expected))?
@@ -696,7 +700,7 @@ impl SemanticAnalyzer {
                         *span,
                     )?;
                     self.check_unknown_to_ground_sink(&expected, &ty, value, name, *span)?;
-                } else if matches!(expected, TypeId::Unknown) {
+                } else if expected.is_inference_hole() {
                     if let Some(binding) = self.scope.lookup_mut(name) {
                         binding.ty = ty.clone();
                     }
@@ -768,7 +772,7 @@ impl SemanticAnalyzer {
                     }
                 }
                 let expected = self.infer_member_type(&obj_ty, name);
-                if matches!(expected, TypeId::Unknown | TypeId::GenericParam(_)) {
+                if matches!(expected, TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)) {
                     self.analyze_expr(value)?;
                 } else {
                     let ty = self.analyze_expr_with_expected(value, Some(&expected))?;
@@ -803,7 +807,7 @@ impl SemanticAnalyzer {
                             .function_params
                             .get(&mangled)
                             .and_then(|p| p.first())
-                            .filter(|t| !matches!(t, TypeId::Unknown | TypeId::GenericParam(_)))
+                            .filter(|t| !matches!(t, TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)))
                             .cloned()
                         {
                             let found =
@@ -829,7 +833,7 @@ impl SemanticAnalyzer {
                         if let Some(expected) = self.subscript_return_type(type_name) {
                             if !matches!(
                                 expected,
-                                TypeId::Unknown | TypeId::GenericParam(_)
+                                TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)
                             ) {
                                 let found =
                                     self.analyze_expr_with_expected(value, Some(&expected))?;
@@ -858,7 +862,7 @@ impl SemanticAnalyzer {
                     }
                 }
                 if let TypeId::Dictionary { key, value: val_ty } = obj_ty {
-                    if !matches!(key.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
+                    if !matches!(key.as_ref(), TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)) {
                         let found_key =
                             self.analyze_expr_with_expected(index, Some(key.as_ref()))?;
                         self.check_assignable_with_literal(
@@ -879,7 +883,7 @@ impl SemanticAnalyzer {
                     } else {
                         self.analyze_expr(index)?;
                     }
-                    if !matches!(val_ty.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
+                    if !matches!(val_ty.as_ref(), TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)) {
                         let found_val =
                             self.analyze_expr_with_expected(value, Some(val_ty.as_ref()))?;
                         self.check_assignable_with_literal(
@@ -920,7 +924,7 @@ impl SemanticAnalyzer {
                         "index",
                         *span,
                     )?;
-                    if !matches!(elem.as_ref(), TypeId::Unknown | TypeId::GenericParam(_)) {
+                    if !matches!(elem.as_ref(), TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_)) {
                         let found_val =
                             self.analyze_expr_with_expected(value, Some(elem.as_ref()))?;
                         self.check_assignable_with_literal(

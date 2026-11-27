@@ -75,7 +75,7 @@ impl SemanticAnalyzer {
                         .map(|p| {
                             p.ty.as_ref()
                                 .map(type_expr_to_id)
-                                .unwrap_or(TypeId::Unknown)
+                                .unwrap_or(TypeId::InferenceVar)
                         })
                         .collect(),
                 );
@@ -314,7 +314,7 @@ impl SemanticAnalyzer {
                                 .map(|p| {
                                     p.ty.as_ref()
                                         .map(type_expr_to_id)
-                                        .unwrap_or(TypeId::Unknown)
+                                        .unwrap_or(TypeId::InferenceVar)
                                 })
                                 .collect(),
                         );
@@ -442,7 +442,7 @@ impl SemanticAnalyzer {
                         } = member
                         {
                             let field_ty =
-                                ty.as_ref().map(type_expr_to_id).unwrap_or(TypeId::Unknown);
+                                ty.as_ref().map(type_expr_to_id).unwrap_or(TypeId::InferenceVar);
                             fields.push((field.clone(), field_ty));
                             if computed_getter.is_some() && computed_setter.is_none() {
                                 self.getter_only_properties
@@ -465,7 +465,7 @@ impl SemanticAnalyzer {
                                 let ret = return_type
                                     .as_ref()
                                     .map(type_expr_to_id)
-                                    .unwrap_or(TypeId::Unknown);
+                                    .unwrap_or(TypeId::InferenceVar);
                                 prop_getters.insert(field, ret);
                                 continue;
                             }
@@ -588,7 +588,7 @@ impl SemanticAnalyzer {
                                     .map(|p| {
                                         p.ty.as_ref()
                                             .map(type_expr_to_id)
-                                            .unwrap_or(TypeId::Unknown)
+                                            .unwrap_or(TypeId::InferenceVar)
                                     })
                                     .collect(),
                             );
@@ -622,7 +622,7 @@ impl SemanticAnalyzer {
                                         .map(|p| {
                                             p.ty.as_ref()
                                                 .map(type_expr_to_id)
-                                                .unwrap_or(TypeId::Unknown)
+                                                .unwrap_or(TypeId::InferenceVar)
                                         })
                                         .collect(),
                                 );
@@ -708,7 +708,7 @@ impl SemanticAnalyzer {
                                     .map(|p| {
                                         p.ty.as_ref()
                                             .map(type_expr_to_id)
-                                            .unwrap_or(TypeId::Unknown)
+                                            .unwrap_or(TypeId::InferenceVar)
                                     })
                                     .collect(),
                             );
@@ -823,19 +823,31 @@ impl SemanticAnalyzer {
                         .iter()
                         .map(|(f, ty)| (f.clone(), type_expr_to_id(ty)))
                         .collect();
+                    // Parallel to field_types: true when memberwise arg may be omitted.
+                    let mut field_has_default: Vec<bool> = fields.iter().map(|_| false).collect();
                     let mut methods: Vec<(SmolStr, TypeId)> = Vec::new();
                     for member in members {
                         if let Decl::VarGlobal {
                             name: field,
                             ty: Some(ty),
+                            init,
                             ..
                         } = member
                         {
                             let field_ty = type_expr_to_id(ty);
-                            if let Some(slot) = field_types.iter_mut().find(|(f, _)| f == field) {
+                            let has_default = init.is_some();
+                            if let Some((idx, slot)) = field_types
+                                .iter_mut()
+                                .enumerate()
+                                .find(|(_, (f, _))| f == field)
+                            {
                                 slot.1 = field_ty;
+                                if let Some(flag) = field_has_default.get_mut(idx) {
+                                    *flag = has_default;
+                                }
                             } else {
                                 field_types.push((field.clone(), field_ty));
+                                field_has_default.push(has_default);
                             }
                         }
                         if let Decl::Function {
@@ -881,7 +893,7 @@ impl SemanticAnalyzer {
                                         .map(|p| {
                                             p.ty.as_ref()
                                                 .map(type_expr_to_id)
-                                                .unwrap_or(TypeId::Unknown)
+                                                .unwrap_or(TypeId::InferenceVar)
                                         })
                                         .collect(),
                                 );
@@ -905,7 +917,7 @@ impl SemanticAnalyzer {
                                     .map(|p| {
                                         p.ty.as_ref()
                                             .map(type_expr_to_id)
-                                            .unwrap_or(TypeId::Unknown)
+                                            .unwrap_or(TypeId::InferenceVar)
                                     })
                                     .collect(),
                             );
@@ -930,9 +942,12 @@ impl SemanticAnalyzer {
                         );
                         // C-0l: memberwise ctor params for Unknown→ground sink.
                         self.function_params.insert(
-                            init_name,
+                            init_name.clone(),
                             field_types.iter().map(|(_, ty)| ty.clone()).collect(),
                         );
+                        // Field defaults (`var n: Int = 0`) → omit from Cell() arity.
+                        self.function_param_has_default
+                            .insert(init_name, field_has_default);
                     }
                     if !methods.is_empty() {
                         self.class_methods.insert(name.clone(), methods);
@@ -1083,7 +1098,7 @@ impl SemanticAnalyzer {
                                         .map(|p| {
                                             p.ty.as_ref()
                                                 .map(type_expr_to_id)
-                                                .unwrap_or(TypeId::Unknown)
+                                                .unwrap_or(TypeId::InferenceVar)
                                         })
                                         .collect(),
                                 );

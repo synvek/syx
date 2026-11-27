@@ -10,31 +10,27 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         return is_implicit_convertible(*from, *to) || is_integer_narrowing(*from, *to);
     }
     match (expected, found) {
-        // Soft / gradual: Unknown found is inference noise (Object fields, host
-        // returns). Needed after R-34 started assign-checking call args — without
-        // this, soga/sgate `jStr(v: Any)` / `encodeJson(value: Object)` / Int
-        // params reject `_` and hard-fail tools that previously type-checked green.
-        (_, TypeId::Unknown) => true,
+        // C-0a+3: only InferenceVar remains soft/gradual. Bare `Unknown` is no
+        // longer a global escape. ErrorType never soft-compatible (falls to `_`).
+        // HostFn found-Object soft arm below stays until a façade honesty window.
+        (_, TypeId::InferenceVar) => true,
         // C-0b fallout: many HostFn tables still surface `Object` where façades
-        // declare Bool/Int/…; treat found-Object like Unknown until C-0a trichotomy.
+        // declare Bool/Int/…; treat found-Object like Unknown until HostFn façade window.
         (_, TypeId::Named(n)) if n.as_str() == "Object" => true,
         // `Any` is the unconstrained top type (soga/sgate `jStr(v: Any)`, books).
         (TypeId::Named(n), _) if n.as_str() == "Any" => true,
         // `Object` JSON/dynamic bag accepts Dictionary (typed bag shares Object ops).
         (TypeId::Named(n), TypeId::Dictionary { .. }) if n.as_str() == "Object" => true,
-        // Empty array literal `[]` infers `Array<Unknown>`; allow it to
+        // Empty array literal `[]` infers `Array<Unknown|InferenceVar>`; allow it to
         // initialize any `Array<T>` (same Unknown-elem carve-out as Set).
         (TypeId::Array(expected_elem), TypeId::Array(found_elem)) => {
-            is_compatible(expected_elem, found_elem)
-                || matches!(found_elem.as_ref(), TypeId::Unknown)
+            is_compatible(expected_elem, found_elem) || found_elem.is_inference_hole()
         }
         (TypeId::Set(expected_elem), TypeId::Set(found_elem)) => {
-            is_compatible(expected_elem, found_elem)
-                || matches!(found_elem.as_ref(), TypeId::Unknown)
+            is_compatible(expected_elem, found_elem) || found_elem.is_inference_hole()
         }
         (TypeId::Set(expected_elem), TypeId::Array(found_elem)) => {
-            is_compatible(expected_elem, found_elem)
-                || matches!(found_elem.as_ref(), TypeId::Unknown)
+            is_compatible(expected_elem, found_elem) || found_elem.is_inference_hole()
         }
         // Bare `Set()` constructor types as `Named("Set")`; allow under `Set<T>`.
         (TypeId::Set(_), TypeId::Named(n)) if n.as_str() == "Set" => true,
@@ -49,12 +45,8 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         {
             true
         }
-        // Unknown found already matched above.
-        (TypeId::Optional(_), TypeId::Optional(inner))
-            if matches!(inner.as_ref(), TypeId::Unknown) =>
-        {
-            true
-        }
+        // Inference hole found already matched above for bare; Optional<_> carve-out.
+        (TypeId::Optional(_), TypeId::Optional(inner)) if inner.is_inference_hole() => true,
         (TypeId::Reference(exp), TypeId::Reference(found)) if is_compatible(exp, found) => true,
         (TypeId::Reference(exp), found) if is_compatible(exp, found) => true,
         (TypeId::MutReference(exp), TypeId::MutReference(found)) if is_compatible(exp, found) => {
@@ -88,7 +80,7 @@ pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> Result<(
     if expected == found || is_compatible(&expected, &found) {
         return Ok(());
     }
-    // R-36: Unknown is inference noise — covered by is_compatible(_, Unknown).
+    // R-36 / C-0a+: inference holes covered by soft arms; ErrorType rejects here.
     Err(AssignError {
         message: format!(
             "Type mismatch for '{name}': expected {}, found {}",
@@ -97,4 +89,24 @@ pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> Result<(
         ),
         code: "S004",
     })
+}
+
+
+#[cfg(test)]
+mod c0ap_tests {
+    use super::*;
+    use syx_stdlib::NumericKind;
+
+    #[test]
+    fn soft_arm_inference_var_only_unknown_closed() {
+        let int = TypeId::Numeric(NumericKind::Int);
+        assert!(is_compatible(&int, &TypeId::InferenceVar));
+        assert!(!is_compatible(&int, &TypeId::Unknown));
+        assert!(!is_compatible(&int, &TypeId::ErrorType));
+        // HostFn Object soft arm still open.
+        assert!(is_compatible(
+            &int,
+            &TypeId::Named(smol_str::SmolStr::new("Object"))
+        ));
+    }
 }

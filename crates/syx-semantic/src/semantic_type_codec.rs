@@ -22,29 +22,35 @@ pub fn type_name_to_id(name: &str) -> TypeId {
         "String" => TypeId::String,
         "Void" => TypeId::Void,
         "Unknown" => TypeId::Unknown,
-        "Array" => TypeId::Array(Box::new(TypeId::Unknown)),
-        "Set" => TypeId::Set(Box::new(TypeId::Unknown)),
+        "Array" => TypeId::Array(Box::new(TypeId::InferenceVar)),
+        "Set" => TypeId::Set(Box::new(TypeId::InferenceVar)),
         "Dictionary" => TypeId::Dictionary {
             key: Box::new(TypeId::String),
-            value: Box::new(TypeId::Unknown),
+            value: Box::new(TypeId::InferenceVar),
         },
         "Object" => TypeId::Named(SmolStr::new("Object")),
         other => TypeId::Named(SmolStr::new(other)),
     }
 }
 
-/// Diagnostic-facing type name: never leaks the `Unknown` sentinel token.
+/// Diagnostic-facing type name: never leaks `Unknown` / `InferenceVar` / `ErrorType` tokens.
 pub fn type_id_to_diag_name(ty: &TypeId) -> SmolStr {
     match ty {
-        TypeId::Unknown => SmolStr::new("_"),
-        TypeId::Array(inner) if matches!(inner.as_ref(), TypeId::Unknown) => {
+        TypeId::Unknown | TypeId::InferenceVar | TypeId::ErrorType => SmolStr::new("_"),
+        TypeId::Array(inner) if inner.is_inference_hole() || inner.is_error_type() => {
             SmolStr::new("Array<_>")
         }
-        TypeId::Set(inner) if matches!(inner.as_ref(), TypeId::Unknown) => SmolStr::new("Set<_>"),
-        TypeId::Optional(inner) if matches!(inner.as_ref(), TypeId::Unknown) => SmolStr::new("_?"),
+        TypeId::Set(inner) if inner.is_inference_hole() || inner.is_error_type() => {
+            SmolStr::new("Set<_>")
+        }
+        TypeId::Optional(inner) if inner.is_inference_hole() || inner.is_error_type() => {
+            SmolStr::new("_?")
+        }
         TypeId::Dictionary { key, value }
-            if matches!(key.as_ref(), TypeId::Unknown)
-                || matches!(value.as_ref(), TypeId::Unknown) =>
+            if key.is_inference_hole()
+                || key.is_error_type()
+                || value.is_inference_hole()
+                || value.is_error_type() =>
         {
             SmolStr::new(format!(
                 "Dictionary<{}, {}>",
@@ -54,8 +60,13 @@ pub fn type_id_to_diag_name(ty: &TypeId) -> SmolStr {
         }
         other => {
             let name = type_id_to_name(other);
-            if name.as_str().contains("Unknown") {
-                SmolStr::new(name.as_str().replace("Unknown", "_"))
+            let scrubbed = name
+                .as_str()
+                .replace("Unknown", "_")
+                .replace("InferenceVar", "_")
+                .replace("ErrorType", "_");
+            if scrubbed.as_str() != name.as_str() {
+                SmolStr::new(scrubbed)
             } else {
                 name
             }
@@ -305,6 +316,9 @@ fn type_id_to_name_core(ty: &TypeId, demangle_named: bool) -> SmolStr {
             syx_stdlib::type_name_with_alias(*element)
         )),
         TypeId::Unknown => SmolStr::new("Unknown"),
+        // Internal wire/debug names; diag path scrubbed via `type_id_to_diag_name`.
+        TypeId::InferenceVar => SmolStr::new("InferenceVar"),
+        TypeId::ErrorType => SmolStr::new("ErrorType"),
     }
 }
 
@@ -326,6 +340,17 @@ pub fn simd_lanes_from_type_name(name: &str) -> Option<u8> {
 #[cfg(test)]
 mod demangle_tests {
     use super::*;
+
+    #[test]
+    fn c0a_plus_trichotomy_diag_never_leaks_internal_names() {
+        assert_eq!(type_id_to_diag_name(&TypeId::Unknown).as_str(), "_");
+        assert_eq!(type_id_to_diag_name(&TypeId::InferenceVar).as_str(), "_");
+        assert_eq!(type_id_to_diag_name(&TypeId::ErrorType).as_str(), "_");
+        assert!(TypeId::Unknown.is_inference_hole());
+        assert!(TypeId::InferenceVar.is_inference_hole());
+        assert!(!TypeId::ErrorType.is_inference_hole());
+        assert!(TypeId::ErrorType.is_error_type());
+    }
 
     #[test]
     fn demangle_mono_generic_form() {

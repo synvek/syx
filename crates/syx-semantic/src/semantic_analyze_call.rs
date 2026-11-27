@@ -137,7 +137,8 @@ impl SemanticAnalyzer {
         if !self.is_ground_concrete_type(expected) {
             return Ok(());
         }
-        if !matches!(found, TypeId::Unknown) {
+        // C-0a+1: InferenceVar is also a sink hole; ErrorType is not (poison ≠ hole).
+        if !found.is_inference_hole() {
             return Ok(());
         }
         if !self.is_unknown_sink_source(source) {
@@ -750,7 +751,7 @@ impl SemanticAnalyzer {
                 };
                 for (i, arg) in args.iter().enumerate() {
                     let raw = params.as_ref().and_then(|p| p.get(i));
-                    let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
+                    let expected = raw.filter(|t| !t.is_inference_hole());
                     let found = self.analyze_expr_with_expected(&arg.value, expected)?;
                     if let Some(param_ty) = expected {
                         // C-0d: reject bare values for `&mut T` (is_compatible would
@@ -801,10 +802,19 @@ impl SemanticAnalyzer {
                 // C-0c: non-generic free-function arity (S061). After labels so
                 // Same-label all-positional still surfaces S042 first. Defaults
                 // may be omitted; trailing closures already sit in `args`.
+                // Type ctors key defaults as `{name}_init` (C-0l memberwise).
                 if let Some(ref param_tys) = params {
+                    let defaults_key = if self.class_names.contains(name)
+                        || self.dataclass_names.contains(name)
+                        || self.actor_types.contains(name)
+                    {
+                        SmolStr::new(format!("{name}_init"))
+                    } else {
+                        name.clone()
+                    };
                     let defaults = self
                         .function_param_has_default
-                        .get(name)
+                        .get(&defaults_key)
                         .cloned()
                         .unwrap_or_else(|| vec![false; param_tys.len()]);
                     let max = param_tys.len();
@@ -954,7 +964,7 @@ impl SemanticAnalyzer {
                         let params = self.function_params.get(&init_name).cloned();
                         for (i, arg) in args.iter().enumerate() {
                             let raw = params.as_ref().and_then(|p| p.get(i));
-                            let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
+                            let expected = raw.filter(|t| !t.is_inference_hole());
                             let found =
                                 self.analyze_expr_with_expected(&arg.value, expected)?;
                             if let Some(param_ty) = expected {
@@ -1061,7 +1071,7 @@ impl SemanticAnalyzer {
                     if let Some(params) = params {
                         for (i, arg) in args.iter().enumerate() {
                             let raw = params.get(i);
-                            let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
+                            let expected = raw.filter(|t| !t.is_inference_hole());
                             let found =
                                 self.analyze_expr_with_expected(&arg.value, expected)?;
                             if let Some(param_ty) = expected {
@@ -1104,7 +1114,7 @@ impl SemanticAnalyzer {
                 if name.as_str() == "sorted" {
                     if let TypeId::Array(elem) = &obj_ty {
                         match elem.as_ref() {
-                            TypeId::Unknown | TypeId::GenericParam(_) => {}
+                            TypeId::Unknown | TypeId::InferenceVar | TypeId::GenericParam(_) => {}
                             _ => {
                                 let elem_name = type_id_to_name(elem);
                                 if elem_name == "T" || elem_name == "Unknown" {
@@ -1466,7 +1476,7 @@ impl SemanticAnalyzer {
                 let TypeId::Set(set_elem) = &expected else {
                     return self.check_assignable(expected, found, name, diag_span);
                 };
-                if !self.is_compatible(set_elem, elem) && !matches!(elem.as_ref(), TypeId::Unknown)
+                if !self.is_compatible(set_elem, elem) && !elem.is_inference_hole()
                 {
                     return self.check_assignable(expected, found, name, diag_span);
                 }
@@ -1507,7 +1517,7 @@ impl SemanticAnalyzer {
                     for (k, v) in entries {
                         let kt = self.type_of_expr(k);
                         let vt = self.type_of_expr(v);
-                        if !matches!(kt, TypeId::Unknown)
+                        if !kt.is_inference_hole()
                             && kt != **exp_key
                             && !self.is_compatible(exp_key, &kt)
                             && !self.is_compatible(&kt, exp_key)
@@ -1522,7 +1532,7 @@ impl SemanticAnalyzer {
                                 "S014",
                             ));
                         }
-                        if !matches!(vt, TypeId::Unknown)
+                        if !vt.is_inference_hole()
                             && vt != **exp_val
                             && !self.is_compatible(exp_val, &vt)
                             && !self.is_compatible(&vt, exp_val)
@@ -1625,7 +1635,7 @@ impl SemanticAnalyzer {
                 if is_proto_elem || is_class_elem || is_erasure_elem || elements.is_empty() {
                     for el in elements {
                         let found = self.analyze_expr(el)?;
-                        if is_erasure_elem || matches!(found, TypeId::Unknown) {
+                        if is_erasure_elem || found.is_inference_hole() {
                             continue;
                         }
                         let ok = found == **elem_expected

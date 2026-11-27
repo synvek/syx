@@ -1337,6 +1337,23 @@ func main() {
     );
 }
 
+/// C-0a+3: invalid `super` yields ErrorType — must not soft-assign to ground Int.
+#[test]
+fn c0ap_error_type_super_not_assignable_to_int() {
+    let code = compile_fail_code(
+        r#"
+func main() {
+    let n: Int = super
+}
+"#,
+    );
+    // S055 (invalid super) and/or S004 (ErrorType → Int); must fail.
+    assert!(
+        matches!(code.as_deref(), Some("S055") | Some("S004")),
+        "got={code:?}"
+    );
+}
+
 #[test]
 fn c0a_found_object_to_int_still_ok() {
     compile_ok(

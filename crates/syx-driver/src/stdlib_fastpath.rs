@@ -171,6 +171,8 @@ pub(crate) fn encode_type_id(ty: &TypeId) -> String {
         TypeId::Bool => "bool".into(),
         TypeId::String => "string".into(),
         TypeId::Unknown => "unknown".into(),
+        TypeId::InferenceVar => "infer".into(),
+        TypeId::ErrorType => "error".into(),
         TypeId::Numeric(k) => format!("num:{}", *k as u8),
         TypeId::Named(n) => format!("named:{n}"),
         TypeId::GenericParam(n) => format!("gparam:{n}"),
@@ -297,6 +299,9 @@ pub(crate) fn decode_type_id(wire: &str) -> TypeId {
         "void" => TypeId::Void,
         "bool" => TypeId::Bool,
         "string" => TypeId::String,
+        "infer" => TypeId::InferenceVar,
+        "error" => TypeId::ErrorType,
+        // Legacy / unknown wire tags stay Unknown (transitional).
         _ => TypeId::Unknown,
     }
 }
