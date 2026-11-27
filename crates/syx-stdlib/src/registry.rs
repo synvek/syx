@@ -4236,6 +4236,8 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::IsolationPolicy => "String",
         HostFnId::BlockingPoolSetSize => "Int",
         HostFnId::BlockingPoolSize => "Int",
+        // C-0v2 deferred: façade Dictionary; table Object + Dictionary←Object carve-out
+        // (host→Dictionary trips MIR016 Float32_bitWidth).
         HostFnId::FileReadAsync => "Object",
         HostFnId::IoAdapterPolicy => "String",
         HostFnId::TcpReadAsync => "Object",
@@ -4599,6 +4601,7 @@ pub fn host_fn_return_type(id: HostFnId) -> &'static str {
         HostFnId::ProcessSpawn => "Int",
         HostFnId::ProcessWait => "Int",
         HostFnId::ProcessExitCode => "Int",
+        // C-0v2 deferred (same MIR016 as FileReadAsync); façade Dictionary via carve-out.
         HostFnId::FileStat => "Object",
         HostFnId::FileWatch => "Array",
         HostFnId::FileSymlink | HostFnId::FileChmod => "Bool",

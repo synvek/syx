@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-0a+ `[x]`**（+1/+2/+3：三分 TypeId + 迁移 + 关 `(_, Unknown)`；HostFn Object 软臂仍开）；C-9g2 `[x]`；C-0u `[x]`；C-3/C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = HostFn Object 诚实窗候选**（或 park C-0e / 跨轴 C-3；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-0v `[x]`**（关全局 found-`Object` 软臂；Dictionary←Object 窄 carve-out；FileStat RetypeGround 因 MIR016 park）；C-0a+ `[x]`；C-9g2 `[x]`；C-3/C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = park C-0e 或跨轴 C-3**（不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -38,7 +38,7 @@
 
 **目标：** 未知/错误类型不得 silently 穿过 check；函数 return、call arity、`inout`/`&mut`、narrowing 有负向闸。
 
-**窗序（相对纸面 a→e 的执行序）：** **C-0b → C-0c → C-0d → C-0a** → sinks **C-0f…u** → **C-0a+1…3**；**C-0e park**；HostFn Object 软臂另窗。
+**窗序（相对纸面 a→e 的执行序）：** **C-0b → C-0c → C-0d → C-0a** → sinks **C-0f…u** → **C-0a+1…3** → **C-0v1…3**；**C-0e park**。
 
 | 子项 | 状态 | 内容 |
 |------|------|------|
@@ -66,6 +66,10 @@
 | **C-0a+2** | `[x]` | 无注解/空字面量/缺成员 → InferenceVar；非法 `super`/macro → ErrorType |
 | **C-0a+3** | `[x]` | 删除 `(_, Unknown)`；仅 InferenceVar 软；ErrorType 拒地面；**Object 软臂仍开** |
 | **C-0a+** | `[x]` | 三分 + 关 Unknown 全局逃逸 — census [`c-0a-plus-soft-arm-census`](harness/census-docs/c-0a-plus-soft-arm-census.md)；ADR [`c-0a-plus-soft-arm-prep`](../docs/adr/c-0a-plus-soft-arm-prep.md) |
+| **C-0v1** | `[x]` | Object HostFn 三桶 inventory — census [`c-0v-hostfn-object-facade-census`](harness/census-docs/c-0v-hostfn-object-facade-census.md) |
+| **C-0v2** | `[x]` | RetypeGround 尝试；FileStat→Dictionary 触 MIR016 → **defer**；改 Dictionary←Object 窄 carve-out |
+| **C-0v3** | `[x]` | 删除 `(_, Named("Object"))`；Object→地面 → S004；保留 expected-Object←Dictionary |
+| **C-0v** | `[x]` | HostFn Object 诚实（全局软臂关）— census 同上 |
 | **C-0e** | `[-]` park | integer narrowing / 书 S008 对齐 |
 
 **验收：** 新负向用例进 gate；正向回归不破硬 KPI；census 写清「拒收面」而非「多了多少通过」。  
@@ -85,8 +89,9 @@
 **验收（C-0s）：** `get(_ i) { var b = Box(); let x = b[i] }` / `b[i] = 1`（desugared `__subscript_*`）→ **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0s `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-0t）：** `enum E { wrap(n: Int) }` + `take(_ x) { E.wrap(n: x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0t `[x]`**；**C-0a+ 仍 `[-]`**。  
 **验收（C-0u）：** `class Outer { class Inner { init(_ n: Int) {} } }` + `wrap(_ x) { Outer.Inner(x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0u `[x]`**。  
-**验收（C-0a+）：** `InferenceVar` 软、`Unknown`/`ErrorType` 不软；空数组 / Any / Object bag / `jStr(v: Any)` 绿；C-0a…u 负向绿；**C-0a+ `[x]`**；HostFn Object 软臂**未**关；成熟度语义维**默认不抬**（Object 逃逸仍在）；默认下一 → **HostFn Object 诚实窗候选**（C-0e 仍 park；**不**宣称 C-3/C-5 `[x]`）。  
-**不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG；本轴不关 found-`Object`。
+**验收（C-0a+）：** `InferenceVar` 软、`Unknown`/`ErrorType` 不软；空数组 / Any / Object bag / `jStr(v: Any)` 绿；C-0a…u 负向绿；**C-0a+ `[x]`**。  
+**验收（C-0v）：** Object→Int **S004**；全局 `(_, Object)` 已删；Dictionary←Object 窄 carve-out（FileStat RetypeGround park）；**C-0v `[x]`**；语义维试探 **2.2**；默认下一 → **park C-0e 或跨轴 C-3**（**不**宣称 C-3/C-5 `[x]`）。  
+**不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG；本窗不修 MIR016 FileStat→Dictionary。
 
 ### C-1 · ManagedHeap 安全默认（P0） — `[x]` 默认降级+identity+immutable+叙事
 
@@ -386,7 +391,7 @@ formatter CST lossless；Ch15 隐式 `super.init` MD 诚实；语言书与 parse
 | **C-9f** | `[x]` | 公开 `docs/census` 窗账本迁私有；留能力摘要/stub |
 | **C-9g2** | `[x]` | 清跨轴阶段回灌的 `docs/census/c-8a…f`；lang `c8c`/`c8e` 改 `tests/lang/fixtures/`；公开 census 仅 README |
 
-**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f + **g2** 真收口）；产品默认下一 → **C-0a+ 开刀候选**。
+**验收（C-9）：** 整理 `plan/01`/`02` 叙事不红公开 CI；fingerprint 闸不计 meta；贡献者默认路径无 docs 字符串合约。**C-9 `[x]`**（a–f + **g2** 真收口）；产品默认下一已迁至 **C-0v** 后（现 = park C-0e / 跨轴 C-3）。
 
 ## 3. 显式 park（非默认下一）
 

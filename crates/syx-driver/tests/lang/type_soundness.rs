@@ -1354,9 +1354,10 @@ func main() {
     );
 }
 
+/// C-0v3: found-Object must not soft-assign to ground Int.
 #[test]
-fn c0a_found_object_to_int_still_ok() {
-    compile_ok(
+fn c0v_object_to_int_s004() {
+    let code = compile_fail_code(
         r#"
 func façade() -> Object {
     let o: Object = [:]
@@ -1367,6 +1368,7 @@ func main() {
 }
 "#,
     );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
 }
 
 #[test]

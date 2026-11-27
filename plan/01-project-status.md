@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-27 · **C-0a+ `[x]`**（三分 + 关 `(_, Unknown)`；HostFn Object 软臂仍开）；C-9g2 `[x]`；C-0u `[x]`；C-3/C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；产品下一 = **HostFn Object 诚实窗候选**（C-0e 仍 park；成熟度仍 ~**2.6/5**；语义维暂不抬；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-0v `[x]`**（关全局 found-`Object`；Dictionary←Object 窄 carve-out）；C-0a+ `[x]`；C-9g2 `[x]`；C-3/C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；产品下一 = **park C-0e 或跨轴 C-3**（成熟度 ~**2.6/5**；语义维 **2.2**；不宣称 C-3/C-5 `[x]`）。
 
 ## 1. 一句话现状
 
@@ -63,7 +63,7 @@ flowchart LR
 | 领域 | /5 | 判断 |
 |------|---:|------|
 | 语法 / 诊断 | 3.0 | 表面广；parser 与书仍有分叉 |
-| 语义 / 泛型 / 引用 | **2.0** | C-0a+ 已关 `Unknown` 全局软臂；**HostFn `Object` 软臂仍开** → 暂不抬维 |
+| 语义 / 泛型 / 引用 | **2.2** | C-0a+/C-0v 已关 `Unknown` 与全局 found-`Object`；余 Dictionary←Object carve-out / C-0e |
 | MIR / VM | 3.0 | 窄切片可用；缺 verifier / 稳定 identity |
 | Wasm | 3.5 | 46/46 + AOT ratio 1.0；host-assisted ≠ portable sandbox |
 | Native LLVM | 2.9 | CI paid hello+path+tcp+sql+http(+types/server/stream/timeout)+pool/row+file×3+tls.client（C-2b-2…13）；16 行产品 `native=real` |
@@ -73,13 +73,13 @@ flowchart LR
 | CI / docs / release | 2.9 | C-6 `[x]`；C-9 `[x]`（含 **g2**：公开 `docs/census` 仅 stub；3600/1700）；C-7 仍 `[~]` |
 | LSP / DX | 3.5+ | 1788 lib tests；编辑器面强 |
 
-**综合：约 2.6/5 — 研究型 beta / 受控实验工具链，≠ 生产级 Swift-like 语言。**（C-0a+ 已关 Unknown 逃逸；语义维上调须等 HostFn Object 诚实窗或更充分绿钉。）
+**综合：约 2.6/5 — 研究型 beta / 受控实验工具链，≠ 生产级 Swift-like 语言。**（语义维已试探 2.2；综合分仍谨慎；FileStat RetypeGround / C-0e 仍 park。）
 
 ## 5. 开放债（对接 `02` 收敛期）
 
 ### P0 — 正确性与安全边界（默认下一）
 
-1. **类型 soundness**：C-0a…u 薄闸 + **C-0a+** 三分/`(_, Unknown)` 已关（[`docs/adr/c-0a-plus-soft-arm-prep.md`](../docs/adr/c-0a-plus-soft-arm-prep.md)）；**HostFn found-`Object` 软臂**与 **C-0e** narrowing 仍 park；host/extension 方法 GA park
+1. **类型 soundness**：C-0a…u + **C-0a+** + **C-0v**（全局 found-`Object` 已关；Dictionary←Object carve-out — [`docs/adr/c-0a-plus-soft-arm-prep.md`](../docs/adr/c-0a-plus-soft-arm-prep.md)）；**C-0e** narrowing 仍 park；FileStat→Dictionary RetypeGround park（MIR016）；host/extension 方法 GA park
 2. **ManagedHeap**：C-1 轴已退出（默认降级 · weak identity · immutable 拒写 · churn 叙事清扫）；算法厚修仍 park（C-1a+）  
 3. **Backend 支持矩阵**：C-2 `[x]`（SSOT + 16× paid `native=real` + JIT label + `ci.job.*` surface 对齐）；余债 park（`net.tls.server` · macOS full-native）
 4. **MIR 输入**：C-3a…C-3z + **C-3aa**…**C-3bx** + **C-3by**…**C-3bz** + **C-3ca** done；全量 MirOp / Call(ModuleId) IR / HostFn arity / trim remap / global 名表·remap / locals 类型·φ / ConstFnIndex fail-closed（R-33） / CallIndirect 完整 arity / JumpIfNil 路径敏感高度 / CallSuper init self 路径 / CallClosure 完整 arity / AwaitPoll·BindResult / 跨块 φ / 完整 DefId / 完整 exception 仍 park

@@ -10,13 +10,9 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         return is_implicit_convertible(*from, *to) || is_integer_narrowing(*from, *to);
     }
     match (expected, found) {
-        // C-0a+3: only InferenceVar remains soft/gradual. Bare `Unknown` is no
-        // longer a global escape. ErrorType never soft-compatible (falls to `_`).
-        // HostFn found-Object soft arm below stays until a façade honesty window.
+        // C-0a+3 / C-0v3: only InferenceVar remains soft/gradual. Bare `Unknown`
+        // and found-`Object` are no longer global escapes. ErrorType never soft.
         (_, TypeId::InferenceVar) => true,
-        // C-0b fallout: many HostFn tables still surface `Object` where façades
-        // declare Bool/Int/…; treat found-Object like Unknown until HostFn façade window.
-        (_, TypeId::Named(n)) if n.as_str() == "Object" => true,
         // `Any` is the unconstrained top type (soga/sgate `jStr(v: Any)`, books).
         (TypeId::Named(n), _) if n.as_str() == "Any" => true,
         // `Object` JSON/dynamic bag accepts Dictionary (typed bag shares Object ops).
@@ -40,6 +36,15 @@ pub fn is_compatible(expected: &TypeId, found: &TypeId) -> bool {
         (TypeId::Array(_), TypeId::Named(n)) if n.as_str() == "Array" => true,
         (TypeId::Named(n), TypeId::Dictionary { .. }) if n.as_str() == "Dictionary" => true,
         (TypeId::Dictionary { .. }, TypeId::Named(n)) if n.as_str() == "Dictionary" => true,
+        // C-0v: SA-6-01 façades return Dictionary while host table still Object
+        // (RetypeGround deferred — FileStat→Dictionary trips MIR016). Narrow
+        // carve-out only; not a global found-Object soft arm.
+        (TypeId::Dictionary { .. }, TypeId::Named(n)) if n.as_str() == "Object" => true,
+        (TypeId::Named(n), TypeId::Named(o))
+            if n.as_str() == "Dictionary" && o.as_str() == "Object" =>
+        {
+            true
+        }
         (TypeId::Optional(inner), found)
             if is_compatible(inner, found) || inner.as_ref() == found =>
         {
@@ -91,21 +96,36 @@ pub fn check_assignable(expected: TypeId, found: TypeId, name: &str) -> Result<(
     })
 }
 
-
 #[cfg(test)]
 mod c0ap_tests {
     use super::*;
     use syx_stdlib::NumericKind;
 
     #[test]
-    fn soft_arm_inference_var_only_unknown_closed() {
+    fn soft_arm_inference_var_only_unknown_and_object_closed() {
         let int = TypeId::Numeric(NumericKind::Int);
         assert!(is_compatible(&int, &TypeId::InferenceVar));
         assert!(!is_compatible(&int, &TypeId::Unknown));
         assert!(!is_compatible(&int, &TypeId::ErrorType));
-        // HostFn Object soft arm still open.
-        assert!(is_compatible(
+        // C-0v3: found-Object no longer soft-assigns to ground.
+        assert!(!is_compatible(
             &int,
+            &TypeId::Named(smol_str::SmolStr::new("Object"))
+        ));
+        // expected-Object still accepts Dictionary bags.
+        assert!(is_compatible(
+            &TypeId::Named(smol_str::SmolStr::new("Object")),
+            &TypeId::Dictionary {
+                key: Box::new(TypeId::String),
+                value: Box::new(TypeId::InferenceVar),
+            }
+        ));
+        // Narrow Dictionary ← Object carve-out (façade honesty deferral).
+        assert!(is_compatible(
+            &TypeId::Dictionary {
+                key: Box::new(TypeId::String),
+                value: Box::new(TypeId::InferenceVar),
+            },
             &TypeId::Named(smol_str::SmolStr::new("Object"))
         ));
     }
