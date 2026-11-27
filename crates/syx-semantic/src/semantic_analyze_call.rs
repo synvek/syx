@@ -949,12 +949,38 @@ impl SemanticAnalyzer {
                 if let Expr::Ident { name: module, .. } = object.as_ref() {
                     self.check_import_member_access(module.as_str(), name.as_str(), *span)?;
                     if name.chars().next().is_some_and(|c| c.is_uppercase()) {
-                        for arg in args {
-                            self.analyze_expr(&arg.value)?;
-                        }
+                        // C-0u: Module.Type / Outer.Inner ctor — Unknown→ground via `{mod}_{Type}_init`.
                         let init_name = SmolStr::new(format!("{module}_{name}_init"));
+                        let params = self.function_params.get(&init_name).cloned();
+                        for (i, arg) in args.iter().enumerate() {
+                            let raw = params.as_ref().and_then(|p| p.get(i));
+                            let expected = raw.filter(|t| !matches!(t, TypeId::Unknown));
+                            let found =
+                                self.analyze_expr_with_expected(&arg.value, expected)?;
+                            if let Some(param_ty) = expected {
+                                self.check_unknown_to_ground_sink(
+                                    param_ty,
+                                    &found,
+                                    &arg.value,
+                                    name.as_str(),
+                                    expr_span(&arg.value),
+                                )?;
+                                self.check_assignable_with_literal(
+                                    param_ty.clone(),
+                                    found,
+                                    name.as_str(),
+                                    Some(&arg.value),
+                                    *span,
+                                )?;
+                            }
+                        }
                         self.check_call_argument_labels(&init_name, args, *span);
-                        return Ok(TypeId::Named(name.clone()));
+                        let named = TypeId::Named(name.clone());
+                        if self.failable_inits.contains(&SmolStr::new(format!("{module}_{name}")))
+                        {
+                            return Ok(TypeId::Optional(Box::new(named)));
+                        }
+                        return Ok(named);
                     }
                     if module.as_str() == "Crypto" {
                         if let Some(tm) = lookup_type_method("Crypto", name.as_str()) {

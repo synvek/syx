@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-27 · **C-9 维护者证据链治理 `[x]`**（meta/census → `plan/harness/`；公开 CI = lang + mir_floor；count-gate **3600/1700**）；C-0t `[x]`；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；产品下一 = **跨轴**（C-0a+ prep / C-0e / Module.Type prep；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-0u `[x]`**（Module.Type Init sink）；**C-0a+ prep ready**（ADR；仍 park）；C-9 `[x]`；C-0 薄闸 `[x]`；C-3 `[~]`（a…ca）；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；产品下一 = **C-0a+ 开刀候选**（C-0e 仍 park；成熟度仍 ~**2.6/5**；不宣称 C-3/C-5 `[x]`）。
 
 ## 1. 一句话现状
 
@@ -73,13 +73,13 @@ flowchart LR
 | CI / docs / release | 2.9 | C-6 `[x]`；C-9 `[x]`（meta 出公开 CI；3600/1700）；C-7a…c + C-7 仍 `[~]`（scaffold park） |
 | LSP / DX | 3.5+ | 1788 lib tests；编辑器面强 |
 
-**综合：约 2.6/5 — 研究型 beta / 受控实验工具链，≠ 生产级 Swift-like 语言。**
+**综合：约 2.6/5 — 研究型 beta / 受控实验工具链，≠ 生产级 Swift-like 语言。**（C-0u / C-9 不抬语义维；上调须等 C-0a+ 真关软臂。）
 
 ## 5. 开放债（对接 `02` 收敛期）
 
 ### P0 — 正确性与安全边界（默认下一）
 
-1. **类型 soundness**：C-0a…d + **C-0f** + **C-0g** + **C-0h** + **C-0i** + **C-0j** + **C-0k** + **C-0l** + **C-0m** + **C-0n** + **C-0o** + **C-0p** + **C-0q** + **C-0r** + **C-0s** + **C-0t** enum case payload Unknown sink 已闸；`ErrorType` / `InferenceVar` 三分 / 关软臂 / narrowing 仍 park（C-0a+/C-0e）；Module.Type ctor · host/extension 方法 GA park
+1. **类型 soundness**：C-0a…d + **C-0f**…**C-0t** + **C-0u** Module.Type/`Outer.Inner` Init sink 已闸；`ErrorType` / `InferenceVar` 三分 / 关软臂仍 park（**C-0a+ prep ready** — [`docs/adr/c-0a-plus-soft-arm-prep.md`](../docs/adr/c-0a-plus-soft-arm-prep.md)）；**C-0e** narrowing 仍 park；host/extension 方法 GA park
 2. **ManagedHeap**：C-1 轴已退出（默认降级 · weak identity · immutable 拒写 · churn 叙事清扫）；算法厚修仍 park（C-1a+）  
 3. **Backend 支持矩阵**：C-2 `[x]`（SSOT + 16× paid `native=real` + JIT label + `ci.job.*` surface 对齐）；余债 park（`net.tls.server` · macOS full-native）
 4. **MIR 输入**：C-3a…C-3z + **C-3aa**…**C-3bx** + **C-3by**…**C-3bz** + **C-3ca** done；全量 MirOp / Call(ModuleId) IR / HostFn arity / trim remap / global 名表·remap / locals 类型·φ / ConstFnIndex fail-closed（R-33） / CallIndirect 完整 arity / JumpIfNil 路径敏感高度 / CallSuper init self 路径 / CallClosure 完整 arity / AwaitPoll·BindResult / 跨块 φ / 完整 DefId / 完整 exception 仍 park
@@ -118,4 +118,4 @@ flowchart LR
 - SA 退出：[sa-exit](../docs/adr/sa-exit.md)  
 - Stage-2/3/4 退出：`docs/adr/stage*-exit.md`  
 - U/R 详账：[`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
-- 硬 KPI 最近 census：[`docs/census/c-0a-unknown-sink-census.md`](../docs/census/c-0a-unknown-sink-census.md) · [`docs/census/c-0d-mut-ref-arg-census.md`](../docs/census/c-0d-mut-ref-arg-census.md)
+- 硬 KPI / C-0 census（维护者）：[`harness/census-docs/`](harness/census-docs/)（公开索引 [`docs/census/README.md`](../docs/census/README.md)）

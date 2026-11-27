@@ -1,4 +1,7 @@
 ### SYX 0.4.0
+- feat: Module.Type / Outer.Inner Init Unknown→ground sink → S004 (`{Outer}_{Inner}_init`; soft arm retained; ≠ C-0a+) (C-0u; ≠ C-0a+ `[x]`)
+- docs: C-0a+ soft-arm trichotomy prep ADR (design only; soft arm unchanged)
+- chore: C-9 maintainer harness — credibility meta/census → plan/harness; public CI lang+mir_floor; count-gate 3600/1700
 - feat: enum case payload Unknown→ground sink → S004 ({Enum}_{case}+bare function_params/labels; Call reuse; soft arm retained; ≠ Module.Type / C-0a+) (C-0t; ≠ C-0a+ `[x]`)
 - feat: subscript get/set index Unknown→ground sink → S004 (mangled ___subscript_* first param; extension params; soft arm retained; ≠ enum/Module.Type) (C-0s; ≠ C-0a+ `[x]`)
 - feat: String Index Unknown→ground sink → S004 (platform_int index; soft arm retained; ≠ String write / subscript index) (C-0r; ≠ C-0a+ `[x]`)

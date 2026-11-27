@@ -1,11 +1,12 @@
 # docs/census — relocated (C-9f)
 
-Window census ledgers (`c-*-*.md`, `r-*-*.md`, stage ledgers, etc.) moved to the
-maintainer tree:
+Most window census ledgers moved to the maintainer tree:
 
 **`plan/harness/census-docs/`**
 
-Public contributors do **not** need these files. Product capability status lives in:
+**Public exceptions** (kept for `tests/lang` `include_str!` honesty nails): `c-8a`…`c-8f` book/fmt census MD.
+
+Product capability status:
 
 - [`books/shared/implementation-status.md`](../../books/shared/implementation-status.md)
 - [`docs/adr/capabilities-summary.md`](../adr/capabilities-summary.md)

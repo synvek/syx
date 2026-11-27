@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-9 维护者证据链治理 `[~]`**（P2 并行；详章 [`03-maintainer-harness-governance.md`](03-maintainer-harness-governance.md)）；C-0t `[x]`；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；**产品默认下一仍 = 跨轴**（C-0a+ prep / C-0e / Module.Type prep；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-0u Module.Type Init sink `[x]`**；**C-0a+ prep ADR**（仍 park 待开刀）；C-9 `[x]`；C-0 `[x]` 薄闸；C-3 `[~]`（a…ca；C-3cb W001 现不复现→park）；C-5/C-7/C-8 `[~]`；**C-6/C-4 `[x]`**；**产品默认下一 = C-0a+ 开刀候选**（或明示继续 park；C-0e 仍 park；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -61,7 +61,8 @@
 | **C-0r** | `[x]` | String Index 下标：`platform_int` + Unknown→地面 → **S004**（镜像 Array C-0q；**未**关软臂；≠ String 写 / subscript index）；census [`c-0r-string-index-unknown-sink-census`](harness/census-docs/c-0r-string-index-unknown-sink-census.md) |
 | **C-0s** | `[x]` | subscript get/set **index**：mangled `{Type}___subscript_*` 首参 Unknown→地面 → **S004**（extension 补 params；**未**关软臂；≠ enum / Module.Type）；census [`c-0s-subscript-index-unknown-sink-census`](harness/census-docs/c-0s-subscript-index-unknown-sink-census.md) |
 | **C-0t** | `[x]` | Enum case payload：`{Enum}_{case}` + bare `function_params`/labels → Ident/Member Call sink → **S004**（collect-only；**未**关软臂；≠ Module.Type / 跨 enum 同名 case）；census [`c-0t-enum-case-payload-unknown-sink-census`](harness/census-docs/c-0t-enum-case-payload-unknown-sink-census.md) |
-| **C-0a+** | `[-]` park | `ErrorType` / `InferenceVar` 三分；关 `is_compatible(_, Unknown)` 软臂 |
+| **C-0u** | `[x]` | Module.Type / `Outer.Inner` Init：`{Outer}_{Inner}_init` + Member Call sink → **S004**（**未**关软臂；≠ 深链 Middle.Deep GA / import 包扩面）；census [`c-0u-module-type-init-unknown-sink-census`](harness/census-docs/c-0u-module-type-init-unknown-sink-census.md) |
+| **C-0a+** | `[-]` park · **prep ready** | `ErrorType` / `InferenceVar` 三分；关软臂 — 设计见 [`docs/adr/c-0a-plus-soft-arm-prep.md`](../docs/adr/c-0a-plus-soft-arm-prep.md)；**本窗未改语义** |
 | **C-0e** | `[-]` park | integer narrowing / 书 S008 对齐 |
 
 **验收：** 新负向用例进 gate；正向回归不破硬 KPI；census 写清「拒收面」而非「多了多少通过」。  
@@ -79,7 +80,8 @@
 **验收（C-0q）：** `get(_ i) { var a: Array<Int> = [0]; let _ = a[i] }` → **S004**；Dict key 读同形；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0q `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep / subscript index；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-0r）：** `get(_ i) { let s = "ab"; let c = s[i] }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0r `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep / subscript index；**不**宣称 C-3/C-5 `[x]`）。  
 **验收（C-0s）：** `get(_ i) { var b = Box(); let x = b[i] }` / `b[i] = 1`（desugared `__subscript_*`）→ **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0s `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / enum case payload / Module.Type prep；**不**宣称 C-3/C-5 `[x]`）。  
-**验收（C-0t）：** `enum E { wrap(n: Int) }` + `take(_ x) { E.wrap(n: x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0t `[x]`**；**C-0a+ 仍 `[-]`**；默认下一 → **跨轴**（C-0a+ prep / C-0e / Module.Type prep；**不**宣称 C-3/C-5 `[x]`）。  
+**验收（C-0t）：** `enum E { wrap(n: Int) }` + `take(_ x) { E.wrap(n: x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0t `[x]`**；**C-0a+ 仍 `[-]`**。  
+**验收（C-0u）：** `class Outer { class Inner { init(_ n: Int) {} } }` + `wrap(_ x) { Outer.Inner(x) }` → **S004**；字面量/`Any` 不破；软臂保留；硬 KPI 不破；**C-0u `[x]`**；**C-0a+ prep ready 仍 park**；默认下一 → **C-0a+ 开刀候选**（C-0e 仍 park；**不**宣称 C-3/C-5 `[x]`）。  
 **不做：** 完整 Swift 泛型；整语言 rewrite；C-0b 不做全覆盖 missing-return CFG。
 
 ### C-1 · ManagedHeap 安全默认（P0） — `[x]` 默认降级+identity+immutable+叙事
@@ -281,7 +283,8 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3bx）：** 已证空栈 `IteratorNext` → **MIR076**；合法流 / 无 IteratorNext / abandon 不破；硬 KPI 不破；**C-3bx `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 **验收（C-3by）：** 已证 `CallWitness` 且 `height < n` → **MIR077**；合法流 / 无 CallWitness / abandon 不破；硬 KPI 不破；**C-3by `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bz**。
 **验收（C-3bz）：** 已证 `CallSuper` 且 `height < n` → **MIR078**；合法流 / 无 CallSuper / abandon 不破；硬 KPI 不破；**C-3bz `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3ca**。
-**验收（C-3ca）：** 已证空栈 `CallClosure` → **MIR079**；合法流 / 无 CallClosure / abandon 不破；硬 KPI 不破；**C-3ca `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3ca）：** 已证空栈 `CallClosure` → **MIR079**；合法流 / 无 CallClosure / abandon 不破；硬 KPI 不破；**C-3ca `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（C-0a+ 开刀候选 / 厚 MirOp；**不**宣称 C-3/C-5 `[x]`）。  
+**C-3cb（Wasm W001 If underflow）：** 2026-11-27 复测 `fixtures/test_guard.sy` `syx build --wasm` **绿** → **不插队**；路径敏感 JumpIfNil / emit tracker 仍 park（≠ MIR074 空栈）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
@@ -386,6 +389,7 @@ formatter CST lossless；Ch15 隐式 `super.init` MD 诚实；语言书与 parse
 |----|------|
 | U-41+ 新语法表面 | 收敛期优先 soundness；表面增长冻结除非 unblock P0 |
 | **C-0e** integer narrowing / 书 S008 | 与实现 S008（actor）冲突；独立窗 |
+| **C-3cb** Wasm W001 / JumpIfNil 路径敏感高度 | 现 tip 不复现 emit 红；厚项 ≠ 薄 MIR074 |
 | Ch15 隐式 `super.init` / 真 `CallSuper` | 厚语义；需独立 ADR |
 | CST postfix 深刀 / codegen Break | 高成本；非 P0 |
 | JIT Suite-1 扩面 | pilot only |

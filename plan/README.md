@@ -44,4 +44,4 @@
 5. **不要**在 `archive/*-ledger.md` 上继续当 backlog 打勾。  
 6. 开新窗口：引用 `02` 的 **C-*** ID；需要施工步骤时再建 `.cursor/plans/*.plan.md`。
 
-**当前提示：** SA / R / U 编号账本已收口。**C-9 `[x]`**：meta/census 在 [`harness/`](harness/)；公开 CI = `lang` + `mir_floor`；count-gate **3600/1700**。产品默认下一 = **跨轴**（C-0a+ prep / C-0e / Module.Type prep；C-3/C-5 仍 `[~]`）。U-41+ / JIT / SyxHost / 真隐式 `CallSuper` / 产品伞 / Foundation 命名仍 park。
+**当前提示：** **C-0u `[x]`**；**C-0a+ prep ready**（[`docs/adr/c-0a-plus-soft-arm-prep.md`](../docs/adr/c-0a-plus-soft-arm-prep.md)；仍 park）。**C-9 `[x]`**：[`harness/`](harness/)；公开 CI = `lang` + `mir_floor`；3600/1700。产品默认下一 = **C-0a+ 开刀候选**（C-0e park；C-3/C-5 `[~]`；成熟度 ~2.6/5）。U-41+ / JIT / SyxHost / 真 CallSuper / 产品伞 / Foundation 仍 park。

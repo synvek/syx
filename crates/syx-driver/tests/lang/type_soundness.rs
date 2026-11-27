@@ -1364,3 +1364,65 @@ func main() {
 "#,
     );
 }
+
+#[test]
+fn c0u_untyped_module_type_init_arg_int_s004() {
+    let code = compile_fail_code(
+        r#"
+class Outer {
+    class Inner {
+        init(_ n: Int) { }
+    }
+}
+func wrap(_ x) { Outer.Inner(x) }
+func main() { wrap(1) }
+"#,
+    );
+    assert_eq!(code.as_deref(), Some("S004"), "got={code:?}");
+    let msg = compile_fail_message(
+        r#"
+class Outer {
+    class Inner {
+        init(_ n: Int) { }
+    }
+}
+func wrap(_ x) { Outer.Inner(x) }
+func main() { wrap(1) }
+"#,
+    )
+    .expect("message");
+    assert!(msg.contains("expected Int"), "msg={msg}");
+    assert!(
+        !msg.contains("Unknown"),
+        "diag must not print literal Unknown: {msg}"
+    );
+}
+
+#[test]
+fn c0u_literal_module_type_init_still_ok() {
+    compile_ok(
+        r#"
+class Outer {
+    class Inner {
+        init(_ n: Int) { }
+    }
+}
+func main() { Outer.Inner(1) }
+"#,
+    );
+}
+
+#[test]
+fn c0u_any_module_type_init_still_ok() {
+    compile_ok(
+        r#"
+class Outer {
+    class Inner {
+        init(_ n: Any) { }
+    }
+}
+func wrap(_ x) { Outer.Inner(x) }
+func main() { wrap(1) }
+"#,
+    );
+}

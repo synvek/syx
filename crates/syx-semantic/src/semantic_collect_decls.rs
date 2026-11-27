@@ -53,6 +53,39 @@ impl SemanticAnalyzer {
         }
     }
 
+    /// C-0u: nested type Init → `{Outer}_{Inner}_init` for Module.Type / Outer.Inner Call sink.
+    fn register_nested_type_init_params(&mut self, qualified: &SmolStr, members: &[Decl]) {
+        for member in members {
+            if let Decl::Init {
+                params, failable, ..
+            } = member
+            {
+                let init_name = SmolStr::new(format!("{qualified}_init"));
+                self.function_param_labels.insert(
+                    init_name.clone(),
+                    params
+                        .iter()
+                        .map(|p| (p.external_label.clone(), p.name.clone()))
+                        .collect(),
+                );
+                self.function_params.insert(
+                    init_name,
+                    params
+                        .iter()
+                        .map(|p| {
+                            p.ty.as_ref()
+                                .map(type_expr_to_id)
+                                .unwrap_or(TypeId::Unknown)
+                        })
+                        .collect(),
+                );
+                if *failable {
+                    self.failable_inits.insert(qualified.clone());
+                }
+            }
+        }
+    }
+
     fn collect_nested_type_decl(&mut self, outer: &SmolStr, decl: &Decl) {
         match decl {
             Decl::Class {
@@ -89,6 +122,8 @@ impl SemanticAnalyzer {
                     self.type_conformances
                         .insert(qualified.clone(), conformances.clone());
                 }
+                // C-0u: nested Module.Type / Outer.Inner Init → `{Outer}_{Inner}_init` params.
+                self.register_nested_type_init_params(&qualified, members);
                 self.record_member_typealias_bindings(&qualified, members);
                 self.globals.insert(
                     qualified.clone(),
@@ -140,6 +175,8 @@ impl SemanticAnalyzer {
                 if !field_types.is_empty() {
                     self.dataclass_fields.insert(qualified.clone(), field_types);
                 }
+                // C-0u: nested struct Init → `{Outer}_{Inner}_init` params (≠ C-0a+).
+                self.register_nested_type_init_params(&qualified, members);
                 self.globals.insert(
                     qualified.clone(),
                     Symbol {
