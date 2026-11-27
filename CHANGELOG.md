@@ -1,4 +1,7 @@
 ### SYX 0.4.0
+- feat: MIR CallClosure stack-height floor → MIR079 (pilot∪CallClosure; Δ=(1,1); proven height only; ≠ VM (1+n,1) full arity) (C-3ca; ≠ C-3 `[x]`)
+- feat: MIR CallSuper stack-height floor → MIR078 (pilot∪CallSuper; Δ=(n,1) via callee; proven height only; ≠ _init self path / MIR016) (C-3bz; ≠ C-3 `[x]`)
+- feat: MIR CallWitness stack-height floor → MIR077 (pilot∪CallWitness; Δ=(n,1) via method index; proven height only; ≠ MIR015 / full arity) (C-3by; ≠ C-3 `[x]`)
 - feat: MIR IteratorNext stack-height floor → MIR076 (pilot∪IteratorNext; Δ=(1,1); proven height only; ≠ success +3 / exhausted +1) (C-3bx; ≠ C-3 `[x]`)
 - feat: MIR ActorCall stack-height floor → MIR075 (pilot∪ActorCall; Δ=(n,1) via callee; proven height only; ≠ MIR016 / full arity) (C-3bw; ≠ C-3 `[x]`)
 - feat: MIR JumpIfNil stack-height floor → MIR074 (pilot∪JumpIfNil; Δ=(1,0); proven height only; ≠ MIR007 tag / path-sensitive height) (C-3bv; ≠ C-3 `[x]`)

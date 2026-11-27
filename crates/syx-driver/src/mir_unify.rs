@@ -753,6 +753,9 @@ pub fn build_unified_mir(
     syx_mir::verify_mir_jump_if_nil_stack_floor(&mir)?;
     syx_mir::verify_mir_actor_call_stack_floor(&mir)?;
     syx_mir::verify_mir_iterator_next_stack_floor(&mir)?;
+    syx_mir::verify_mir_call_witness_stack_floor(&mir)?;
+    syx_mir::verify_mir_call_super_stack_floor(&mir)?;
+    syx_mir::verify_mir_call_closure_stack_floor(&mir)?;
     Ok(mir)
 }
 

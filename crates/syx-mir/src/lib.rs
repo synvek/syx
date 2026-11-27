@@ -275,6 +275,18 @@ mod mir_iterator_next_stack_floor;
 pub use mir_iterator_next_stack_floor::{
     verify_mir_iterator_next_stack_floor, verify_mir_iterator_next_stack_floor_functions,
 };
+mod mir_call_witness_stack_floor;
+pub use mir_call_witness_stack_floor::{
+    verify_mir_call_witness_stack_floor, verify_mir_call_witness_stack_floor_functions,
+};
+mod mir_call_super_stack_floor;
+pub use mir_call_super_stack_floor::{
+    verify_mir_call_super_stack_floor, verify_mir_call_super_stack_floor_functions,
+};
+mod mir_call_closure_stack_floor;
+pub use mir_call_closure_stack_floor::{
+    verify_mir_call_closure_stack_floor, verify_mir_call_closure_stack_floor_functions,
+};
 pub use mir_codec::{
     aot_embed_execution_omitted, decode_module, decode_module_dual_blob_package,
     decode_module_metadata_sidecar, dual_blob_package_execution_bytes,

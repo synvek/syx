@@ -4,7 +4,7 @@
 > **状态叙事：** [`01-project-status.md`](01-project-status.md)  
 > **外部审计输入：** [`syx-status-final-report.md`](syx-status-final-report.md)  
 > **上期详账（只读）：** [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)（SA-0…R-49 + U-0…U-40）  
-> **最近更新：** 2026-11-27 · **C-3bv / C-3bw / C-3bx JumpIfNil+ActorCall+IteratorNext 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…bu+bv…bx）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-3by / C-3bz / C-3ca CallWitness+CallSuper+CallClosure 栈薄地板 `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…z+aa…bx+by…bz+ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；默认下一 = **跨轴**（全量 MirOp 余片 / 或 P0 余债；不宣称 C-3/C-5 `[x]`）。
 
 ## 0. 时代切换
 
@@ -178,6 +178,9 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 | **C-3bv** | `[x]` | 薄 JumpIfNil 栈：`verify_mir_jump_if_nil_stack_floor` → **MIR074**（pilot∪JumpIfNil；Δ=(1,0)；仅已证高度不足；≠ MIR007 tag / 路径敏感高度）；挂钩 task-spawn 之后；census [`c-3bv-mir-jump-if-nil-stack-floor-census`](../docs/census/c-3bv-mir-jump-if-nil-stack-floor-census.md) |
 | **C-3bw** | `[x]` | 薄 ActorCall 栈：`verify_mir_actor_call_stack_floor` → **MIR075**（pilot∪ActorCall；Δ=(n,1) via callee；仅已证高度不足；≠ MIR016 / 完整 arity）；挂钩 jump-if-nil 之后；census [`c-3bw-mir-actor-call-stack-floor-census`](../docs/census/c-3bw-mir-actor-call-stack-floor-census.md) |
 | **C-3bx** | `[x]` | 薄 IteratorNext 栈：`verify_mir_iterator_next_stack_floor` → **MIR076**（pilot∪IteratorNext；Δ=(1,1)；仅已证高度不足；≠ 成功 +3 / 耗尽 +1）；挂钩 actor-call 之后；census [`c-3bx-mir-iterator-next-stack-floor-census`](../docs/census/c-3bx-mir-iterator-next-stack-floor-census.md) |
+| **C-3by** | `[x]` | 薄 CallWitness 栈：`verify_mir_call_witness_stack_floor` → **MIR077**（pilot∪CallWitness；Δ=(n,1) via method 索引；仅已证高度不足；≠ MIR015 / 完整 arity）；挂钩 iterator-next 之后；census [`c-3by-mir-call-witness-stack-floor-census`](../docs/census/c-3by-mir-call-witness-stack-floor-census.md) |
+| **C-3bz** | `[x]` | 薄 CallSuper 栈：`verify_mir_call_super_stack_floor` → **MIR078**（pilot∪CallSuper；Δ=(n,1) via callee；仅已证高度不足；≠ `_init` self 路径 / MIR016）；挂钩 call-witness 之后；census [`c-3bz-mir-call-super-stack-floor-census`](../docs/census/c-3bz-mir-call-super-stack-floor-census.md) |
+| **C-3ca** | `[x]` | 薄 CallClosure 栈：`verify_mir_call_closure_stack_floor` → **MIR079**（pilot∪CallClosure；Δ=(1,1)；仅已证高度不足；≠ VM (1+n,1) 完整 arity）；挂钩 call-super 之后；census [`c-3ca-mir-call-closure-stack-floor-census`](../docs/census/c-3ca-mir-call-closure-stack-floor-census.md) |
 
 **验收（C-3h）：** dup/unknown/stem 撞名 → MIR008；空单文件不破；负向钉绿；硬 KPI 不破；**不**宣称 C-3 `[x]`。全量 MirOp / exception / DefId / Call(ModuleId) IR 继续 park。默认下一 → **C-5c+**。  
 **验收（C-3i）：** 失衡 EndTry / 未闭合 BeginTry / orphan·excess Catch → **MIR009**；合法 try/`?`/传播 Throw 不破；硬 KPI 不破；**C-3i `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（P0 Unknown 实参 / 或 DefId 薄窗；**不**宣称 C-3/C-5 `[x]`）。  
@@ -248,6 +251,9 @@ DefId / 稳定 identity；MIR verifier；删除或降级 quality heuristic 作�
 **验收（C-3bv）：** 已证空栈 `JumpIfNil` → **MIR074**；合法流 / 无 JumpIfNil / abandon 不破；硬 KPI 不破；**C-3bv `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bw**。
 **验收（C-3bw）：** 已证 `ActorCall` 且 `height < n` → **MIR075**；合法流 / 无 ActorCall / abandon 不破；硬 KPI 不破；**C-3bw `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bx**。
 **验收（C-3bx）：** 已证空栈 `IteratorNext` → **MIR076**；合法流 / 无 IteratorNext / abandon 不破；硬 KPI 不破；**C-3bx `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
+**验收（C-3by）：** 已证 `CallWitness` 且 `height < n` → **MIR077**；合法流 / 无 CallWitness / abandon 不破；硬 KPI 不破；**C-3by `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3bz**。
+**验收（C-3bz）：** 已证 `CallSuper` 且 `height < n` → **MIR078**；合法流 / 无 CallSuper / abandon 不破；硬 KPI 不破；**C-3bz `[x]`**；**C-3 仍 `[~]`**。默认下一 → **C-3ca**。
+**验收（C-3ca）：** 已证空栈 `CallClosure` → **MIR079**；合法流 / 无 CallClosure / abandon 不破；硬 KPI 不破；**C-3ca `[x]`**；**C-3 仍 `[~]`**（不宣称 `[x]`）。默认下一 → **跨轴**（全量 MirOp 余片 / 或 P0 C-0a+/C-0e；**不**宣称 C-3/C-5 `[x]`）。
 
 ### C-4 · Package 默认可复现（P1） — `[x]`
 
