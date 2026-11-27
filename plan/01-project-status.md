@@ -7,7 +7,7 @@
 > - 可信度 0→4 / Stage ledger → [`archive/`](archive/)  
 > - SA / R / U 详账 → [`archive/02-improvement-roadmap-sa-r-u-ledger.md`](archive/02-improvement-roadmap-sa-r-u-ledger.md)  
 > - 本文件收敛前快照 → [`archive/01-project-status-pre-convergence.md`](archive/01-project-status-pre-convergence.md)  
-> **最近更新：** 2026-11-27 · **C-0l Init 实参 Unknown sink `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；下一 = **跨轴**（C-0a+ prep / C-0e / class-body subscript；不宣称 C-3/C-5 `[x]`）。
+> **最近更新：** 2026-11-27 · **C-0m class-body subscript_set `[x]`**；C-0 `[x]` 薄闸（C-0a+ 仍 park）；C-3 `[~]`（a…ca）；C-5 `[~]`；C-8 `[~]`；C-7 `[~]`；**C-6 `[x]`**；C-4 `[x]`；下一 = **跨轴**（C-0a+ prep / C-0e / Actor·Module.Type ctor；不宣称 C-3/C-5 `[x]`）。
 
 ## 1. 一句话现状
 
@@ -79,7 +79,7 @@ flowchart LR
 
 ### P0 — 正确性与安全边界（默认下一）
 
-1. **类型 soundness**：C-0a…d + **C-0f** + **C-0g** + **C-0h** + **C-0i** + **C-0j** + **C-0k** + **C-0l** Init 实参 Unknown sink 已闸；`ErrorType` / `InferenceVar` 三分 / 关软臂 / narrowing 仍 park（C-0a+/C-0e）；Actor/Module.Type ctor · class 体内 subscript · host/extension 方法 GA park
+1. **类型 soundness**：C-0a…d + **C-0f** + **C-0g** + **C-0h** + **C-0i** + **C-0j** + **C-0k** + **C-0l** + **C-0m** class-body subscript_set 已闸；`ErrorType` / `InferenceVar` 三分 / 关软臂 / narrowing 仍 park（C-0a+/C-0e）；Actor/Module.Type ctor · host/extension 方法 GA park
 2. **ManagedHeap**：C-1 轴已退出（默认降级 · weak identity · immutable 拒写 · churn 叙事清扫）；算法厚修仍 park（C-1a+）  
 3. **Backend 支持矩阵**：C-2 `[x]`（SSOT + 16× paid `native=real` + JIT label + `ci.job.*` surface 对齐）；余债 park（`net.tls.server` · macOS full-native）
 4. **MIR 输入**：C-3a…C-3z + **C-3aa**…**C-3bx** + **C-3by**…**C-3bz** + **C-3ca** done；全量 MirOp / Call(ModuleId) IR / HostFn arity / trim remap / global 名表·remap / locals 类型·φ / ConstFnIndex fail-closed（R-33） / CallIndirect 完整 arity / JumpIfNil 路径敏感高度 / CallSuper init self 路径 / CallClosure 完整 arity / AwaitPoll·BindResult / 跨块 φ / 完整 DefId / 完整 exception 仍 park

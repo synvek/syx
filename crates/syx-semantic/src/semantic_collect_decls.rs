@@ -413,6 +413,15 @@ impl SemanticAnalyzer {
                                 .as_ref()
                                 .map(type_expr_to_id)
                                 .unwrap_or(TypeId::Void);
+                            // C-0m: class-body desugared subscript (≠ extension-only C-0k registration).
+                            if method.as_str() == "__subscript_get" {
+                                self.subscript_types.insert(name.clone());
+                                self.subscript_return_types
+                                    .insert(name.clone(), ret.clone());
+                            }
+                            if method.as_str() == "__subscript_set" {
+                                self.subscript_set_types.insert(name.clone());
+                            }
                             methods.push((method.clone(), ret.clone()));
                             if *is_final {
                                 self.final_methods.insert((name.clone(), method.clone()));
@@ -735,6 +744,15 @@ impl SemanticAnalyzer {
                                 .as_ref()
                                 .map(type_expr_to_id)
                                 .unwrap_or(TypeId::Void);
+                            // C-0m: struct-body desugared subscript (≠ extension-only C-0k registration).
+                            if method.as_str() == "__subscript_get" {
+                                self.subscript_types.insert(name.clone());
+                                self.subscript_return_types
+                                    .insert(name.clone(), ret.clone());
+                            }
+                            if method.as_str() == "__subscript_set" {
+                                self.subscript_set_types.insert(name.clone());
+                            }
                             methods.push((method.clone(), ret.clone()));
                             if attrs.iter().any(|a| a.name.as_str() == "mutating") {
                                 self.mutating_methods.insert((name.clone(), method.clone()));
